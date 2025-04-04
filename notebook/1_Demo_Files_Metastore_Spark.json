@@ -18,529 +18,16 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "fb24d0a6-bf25-4a26-a4f0-da2442485cb8"
+				"spark.autotune.trackingId": "e3152304-7a4d-4d35-883c-d6e41d5d23dc"
 			}
 		},
 		"metadata": {
 			"saveOutput": true,
-			"synapse_widget": {
-				"version": "0.1",
-				"state": {
-					"5a75348a-7520-4214-9320-4f91c659fa8b": {
-						"type": "Synapse.DataFrame",
-						"sync_state": {
-							"table": {
-								"rows": [
-									{
-										"0": "2211",
-										"1": "AOC",
-										"2": "EDAC",
-										"3": "Altenburg Nobitz Airport",
-										"4": "",
-										"5": "http://www.leipzig-altenburg-airport.de/index.php?id=2",
-										"6": "",
-										"7": "2133",
-										"8": "Altenburg",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "50.9816666667",
-										"16": "12.5061111111",
-										"17": "https://centreforaviation.com/data/profiles/airports/altenburg-nobitz-airport-aoc",
-										"18": "7d432d825b58665cc2f0e54b0c00e990dbfb2178888d8f29592e9bbdb4650c5e",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "3905",
-										"1": "BER",
-										"2": "EDDB",
-										"3": "Berlin Brandenburg Airport",
-										"4": "",
-										"5": "http://www.berlin-airport.de/en/index.php",
-										"6": "<p>Berlin Brandenburg Airport is located in Sch&ouml;nefeld, 18 kilometres south of Berlin, Germany. The facility was initially scheduled to open 2011, replacing all three airports in Berlin: Tempelhof, Tegel and Sch&ouml;nefeld. Construction work began on 05-Sep-2006.</p>\r\n<p>Berlin Brandenburg Airport officially came online on 31-Oct-2020, replacing Berlin Schoenefeld, which officially became BER T5 and had its SXF code removed on 25-Oct-2020. Berlin Tegel Airport handled its final commercial service on 08-Nov-2020, after which all traffic in Berlin became centralised at BER.</p>",
-										"7": "237",
-										"8": "Berlin",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "52.364694515525",
-										"16": "13.510812520981",
-										"17": "https://centreforaviation.com/data/profiles/airports/berlin-brandenburg-airport-ber",
-										"18": "511fdeb7fb164534ed43f7caa81692de46fc7aa382974423031e68f01bc59079",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "3916",
-										"1": "BMK",
-										"2": "EDWR",
-										"3": "Borkum Airport",
-										"4": "",
-										"5": "http://www.borkum.de/DE/service/anreise/Anreise_Luftweg.php",
-										"6": "",
-										"7": "3773",
-										"8": "Borkum",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "53.595351",
-										"16": "6.712595999999962",
-										"17": "https://centreforaviation.com/data/profiles/airports/borkum-airport-bmk",
-										"18": "cc90a11d4385a283e1ce149dc5f8bca8253cee6acc4a35d07dda677aad77b599",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "3782",
-										"1": "BWE",
-										"2": "EDVE",
-										"3": "Braunschweig-Wolfsburg Airport",
-										"4": "Lilienthalplatz 5 \r\n38108 Braunschweig\r\nGermany",
-										"5": "http://www.flughafen-braunschweig-wolfsburg.de/",
-										"6": "<p>Braunschweig-Wolfsburg Airport serves the cities of Brunswick and Wolfsburg, in Northern Central Germany.</p>",
-										"7": "3660",
-										"8": "Braunschweig/Wolfsburg",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "52.3193013",
-										"16": "10.5532552",
-										"17": "https://centreforaviation.com/data/profiles/airports/braunschweig-wolfsburg-airport-bwe",
-										"18": "f8300bbc90c3775db03c701b0d4826f1dae06c99cb061cfe7c4f1998b66ef651",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "1303",
-										"1": "BRE",
-										"2": "EDDW",
-										"3": "Bremen Airport Hans Koschnick",
-										"4": "Postfach 28 61 52\r\n28361 Bremen\r\nGermany",
-										"5": "https://www.bremen-airport.com/",
-										"6": "<p><span>Bremen Airport Hans Koschnick</span> served the city of Bremen, Germany. A variety of European LCCs and full-service airlines operate scheduled services at Bremen Airport, which connect passengers to all major business centres across Europe. LCCs also operate service regular service to holiday destinations around Europe and the Mediterranean basin.</p>",
-										"7": "1258",
-										"8": "Bremen",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "53.0475",
-										"16": "8.78666666667",
-										"17": "https://centreforaviation.com/data/profiles/airports/bremen-airport-hans-koschnick-bre",
-										"18": "d93c2fdcd78442e485d9f2c201ac60fcf7c4c29bb86f6695868ef32df8867924",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									}
-								],
-								"schema": [
-									{
-										"key": "0",
-										"name": "airport_id",
-										"type": "int"
-									},
-									{
-										"key": "1",
-										"name": "iata",
-										"type": "string"
-									},
-									{
-										"key": "2",
-										"name": "icao",
-										"type": "string"
-									},
-									{
-										"key": "3",
-										"name": "name",
-										"type": "string"
-									},
-									{
-										"key": "4",
-										"name": "address",
-										"type": "string"
-									},
-									{
-										"key": "5",
-										"name": "website",
-										"type": "string"
-									},
-									{
-										"key": "6",
-										"name": "bio",
-										"type": "string"
-									},
-									{
-										"key": "7",
-										"name": "city_id",
-										"type": "string"
-									},
-									{
-										"key": "8",
-										"name": "city_name",
-										"type": "string"
-									},
-									{
-										"key": "9",
-										"name": "country_id",
-										"type": "string"
-									},
-									{
-										"key": "10",
-										"name": "country_code",
-										"type": "string"
-									},
-									{
-										"key": "11",
-										"name": "country_name",
-										"type": "string"
-									},
-									{
-										"key": "12",
-										"name": "region_id",
-										"type": "string"
-									},
-									{
-										"key": "13",
-										"name": "region_code",
-										"type": "string"
-									},
-									{
-										"key": "14",
-										"name": "region_name",
-										"type": "string"
-									},
-									{
-										"key": "15",
-										"name": "latitude",
-										"type": "string"
-									},
-									{
-										"key": "16",
-										"name": "longitude",
-										"type": "string"
-									},
-									{
-										"key": "17",
-										"name": "data_url",
-										"type": "string"
-									},
-									{
-										"key": "18",
-										"name": "dap_hash",
-										"type": "string"
-									},
-									{
-										"key": "19",
-										"name": "__insertTimestamp",
-										"type": "string"
-									},
-									{
-										"key": "20",
-										"name": "__loadTimestampCurated",
-										"type": "string"
-									}
-								],
-								"truncated": false
-							},
-							"isSummary": false,
-							"language": "scala",
-							"wranglerEntryContext": {
-								"candidateVariableNames": [
-									"df_from_file"
-								],
-								"dataframeType": "pyspark"
-							}
-						},
-						"persist_state": {
-							"view": {
-								"type": "details",
-								"chartOptions": {
-									"chartType": "bar",
-									"aggregationType": "sum",
-									"categoryFieldKeys": [
-										"1"
-									],
-									"seriesFieldKeys": [
-										"0"
-									],
-									"isStacked": false
-								}
-							}
-						}
-					},
-					"f9d66bd9-447a-4d1e-bf6c-e4eebecf587f": {
-						"type": "Synapse.DataFrame",
-						"sync_state": {
-							"table": {
-								"rows": [
-									{
-										"0": "2211",
-										"1": "AOC",
-										"2": "EDAC",
-										"3": "Altenburg Nobitz Airport",
-										"4": "",
-										"5": "http://www.leipzig-altenburg-airport.de/index.php?id=2",
-										"6": "",
-										"7": "2133",
-										"8": "Altenburg",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "50.9816666667",
-										"16": "12.5061111111",
-										"17": "https://centreforaviation.com/data/profiles/airports/altenburg-nobitz-airport-aoc",
-										"18": "7d432d825b58665cc2f0e54b0c00e990dbfb2178888d8f29592e9bbdb4650c5e",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "3905",
-										"1": "BER",
-										"2": "EDDB",
-										"3": "Berlin Brandenburg Airport",
-										"4": "",
-										"5": "http://www.berlin-airport.de/en/index.php",
-										"6": "<p>Berlin Brandenburg Airport is located in Sch&ouml;nefeld, 18 kilometres south of Berlin, Germany. The facility was initially scheduled to open 2011, replacing all three airports in Berlin: Tempelhof, Tegel and Sch&ouml;nefeld. Construction work began on 05-Sep-2006.</p>\r\n<p>Berlin Brandenburg Airport officially came online on 31-Oct-2020, replacing Berlin Schoenefeld, which officially became BER T5 and had its SXF code removed on 25-Oct-2020. Berlin Tegel Airport handled its final commercial service on 08-Nov-2020, after which all traffic in Berlin became centralised at BER.</p>",
-										"7": "237",
-										"8": "Berlin",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "52.364694515525",
-										"16": "13.510812520981",
-										"17": "https://centreforaviation.com/data/profiles/airports/berlin-brandenburg-airport-ber",
-										"18": "511fdeb7fb164534ed43f7caa81692de46fc7aa382974423031e68f01bc59079",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "3916",
-										"1": "BMK",
-										"2": "EDWR",
-										"3": "Borkum Airport",
-										"4": "",
-										"5": "http://www.borkum.de/DE/service/anreise/Anreise_Luftweg.php",
-										"6": "",
-										"7": "3773",
-										"8": "Borkum",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "53.595351",
-										"16": "6.712595999999962",
-										"17": "https://centreforaviation.com/data/profiles/airports/borkum-airport-bmk",
-										"18": "cc90a11d4385a283e1ce149dc5f8bca8253cee6acc4a35d07dda677aad77b599",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "3782",
-										"1": "BWE",
-										"2": "EDVE",
-										"3": "Braunschweig-Wolfsburg Airport",
-										"4": "Lilienthalplatz 5 \r\n38108 Braunschweig\r\nGermany",
-										"5": "http://www.flughafen-braunschweig-wolfsburg.de/",
-										"6": "<p>Braunschweig-Wolfsburg Airport serves the cities of Brunswick and Wolfsburg, in Northern Central Germany.</p>",
-										"7": "3660",
-										"8": "Braunschweig/Wolfsburg",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "52.3193013",
-										"16": "10.5532552",
-										"17": "https://centreforaviation.com/data/profiles/airports/braunschweig-wolfsburg-airport-bwe",
-										"18": "f8300bbc90c3775db03c701b0d4826f1dae06c99cb061cfe7c4f1998b66ef651",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									},
-									{
-										"0": "1303",
-										"1": "BRE",
-										"2": "EDDW",
-										"3": "Bremen Airport Hans Koschnick",
-										"4": "Postfach 28 61 52\r\n28361 Bremen\r\nGermany",
-										"5": "https://www.bremen-airport.com/",
-										"6": "<p><span>Bremen Airport Hans Koschnick</span> served the city of Bremen, Germany. A variety of European LCCs and full-service airlines operate scheduled services at Bremen Airport, which connect passengers to all major business centres across Europe. LCCs also operate service regular service to holiday destinations around Europe and the Mediterranean basin.</p>",
-										"7": "1258",
-										"8": "Bremen",
-										"9": "7",
-										"10": "DE",
-										"11": "Germany",
-										"12": "2",
-										"13": "EU1",
-										"14": "Europe: Western Europe",
-										"15": "53.0475",
-										"16": "8.78666666667",
-										"17": "https://centreforaviation.com/data/profiles/airports/bremen-airport-hans-koschnick-bre",
-										"18": "d93c2fdcd78442e485d9f2c201ac60fcf7c4c29bb86f6695868ef32df8867924",
-										"19": "2024-08-21 07:47:12",
-										"20": "2025-02-27 09:56:01"
-									}
-								],
-								"schema": [
-									{
-										"key": "0",
-										"name": "airport_id",
-										"type": "int"
-									},
-									{
-										"key": "1",
-										"name": "iata",
-										"type": "string"
-									},
-									{
-										"key": "2",
-										"name": "icao",
-										"type": "string"
-									},
-									{
-										"key": "3",
-										"name": "name",
-										"type": "string"
-									},
-									{
-										"key": "4",
-										"name": "address",
-										"type": "string"
-									},
-									{
-										"key": "5",
-										"name": "website",
-										"type": "string"
-									},
-									{
-										"key": "6",
-										"name": "bio",
-										"type": "string"
-									},
-									{
-										"key": "7",
-										"name": "city_id",
-										"type": "string"
-									},
-									{
-										"key": "8",
-										"name": "city_name",
-										"type": "string"
-									},
-									{
-										"key": "9",
-										"name": "country_id",
-										"type": "string"
-									},
-									{
-										"key": "10",
-										"name": "country_code",
-										"type": "string"
-									},
-									{
-										"key": "11",
-										"name": "country_name",
-										"type": "string"
-									},
-									{
-										"key": "12",
-										"name": "region_id",
-										"type": "string"
-									},
-									{
-										"key": "13",
-										"name": "region_code",
-										"type": "string"
-									},
-									{
-										"key": "14",
-										"name": "region_name",
-										"type": "string"
-									},
-									{
-										"key": "15",
-										"name": "latitude",
-										"type": "string"
-									},
-									{
-										"key": "16",
-										"name": "longitude",
-										"type": "string"
-									},
-									{
-										"key": "17",
-										"name": "data_url",
-										"type": "string"
-									},
-									{
-										"key": "18",
-										"name": "dap_hash",
-										"type": "string"
-									},
-									{
-										"key": "19",
-										"name": "__insertTimestamp",
-										"type": "string"
-									},
-									{
-										"key": "20",
-										"name": "__loadTimestampCurated",
-										"type": "string"
-									}
-								],
-								"truncated": false
-							},
-							"isSummary": false,
-							"language": "scala",
-							"wranglerEntryContext": {
-								"candidateVariableNames": [
-									"df_from_table"
-								],
-								"dataframeType": "pyspark"
-							}
-						},
-						"persist_state": {
-							"view": {
-								"type": "details",
-								"chartOptions": {
-									"chartType": "bar",
-									"aggregationType": "sum",
-									"categoryFieldKeys": [
-										"1"
-									],
-									"seriesFieldKeys": [
-										"0"
-									],
-									"isStacked": false
-								}
-							}
-						}
-					}
-				}
-			},
 			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
 			"language_info": {
 				"name": "python"
 			},
@@ -551,14 +38,13 @@
 				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
 				"auth": {
 					"type": "AAD",
-					"authResource": "https://dev.azuresynapse.net",
-					"authHeader": null
+					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.4",
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
-				"extraHeader": null
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -640,8 +126,9 @@
 					"%%sql\n",
 					"-- check which catalog is connected to Spark\n",
 					"-- spark_catalog == lake database\n",
+					"-- First Level\n",
 					"\n",
-					"show CATALOGS"
+					"SHOW CATALOGS"
 				],
 				"execution_count": 9
 			},
@@ -655,6 +142,7 @@
 				},
 				"source": [
 					"%%sql\n",
+					"-- SECOND LEVEL\n",
 					"SHOW DATABASES in spark_catalog"
 				],
 				"execution_count": 17
@@ -737,7 +225,8 @@
 					"-- create new database with root storage in our storage containter\n",
 					"CREATE DATABASE flight_data\n",
 					"LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/flight_data'"
-				]
+				],
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",
@@ -1067,8 +556,13 @@
 					"show_table_details(\"flight_data\")\n",
 					"\n",
 					"print(\"####################################################################\")\n",
-					"list_files_tree(f\"{bucket}\",0,2)"
-				]
+					"list_files_tree(f\"{bucket}\",0,2)\n",
+					"\n",
+					"\n",
+					"#safe_delete_path(f\"{trusted}/{user}/lab/cars\")\n",
+					"#safe_delete_path(f\"{trusted}/{user}/lab/juices\")"
+				],
+				"execution_count": null
 			}
 		]
 	}
