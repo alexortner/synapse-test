@@ -18,12 +18,16 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3215308c-f20d-4cd9-b3ee-9a2a3f13da94"
+				"spark.autotune.trackingId": "ee0c46fe-f201-4d17-8f60-82776a547dfd"
 			}
 		},
 		"metadata": {
 			"saveOutput": false,
 			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
 			"language_info": {
 				"name": "python"
 			},
@@ -34,14 +38,13 @@
 				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
 				"auth": {
 					"type": "AAD",
-					"authResource": "https://dev.azuresynapse.net",
-					"authHeader": null
+					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.4",
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
-				"extraHeader": null
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -79,14 +82,14 @@
 					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
 					"user = \"alex\""
 				],
-				"execution_count": 29
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 43
+				"execution_count": 2
 			},
 			{
 				"cell_type": "markdown",
@@ -798,7 +801,8 @@
 				"cell_type": "code",
 				"source": [
 					""
-				]
+				],
+				"execution_count": null
 			}
 		]
 	}
