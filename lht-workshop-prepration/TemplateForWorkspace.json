@@ -1,0 +1,4102 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "lht-workshop-prepration"
+		},
+		"lht-workshop-prepration-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'lht-workshop-prepration-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:lht-workshop-prepration.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"DataTest2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://lhtdata.dfs.core.windows.net/"
+		},
+		"Products_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/MicrosoftLearning/dp-203-azure-data-engineer/master/Allfiles/labs/01/adventureworks/products.csv"
+		},
+		"lht-workshop-prepration-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://lufthansasynapsepocalex.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Copy products')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "Copy products data",
+				"activities": [
+					{
+						"name": "Copy_chi",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Destination",
+								"value": "files/product_data/products.csv"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings",
+									"skipLineCount": 0
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_chi",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_chi",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-02-24T13:41:36Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_chi')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_chi')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_chi')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lht-workshop-prepration-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "products.csv",
+						"folderPath": "product_data",
+						"fileSystem": "files"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/lht-workshop-prepration-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_chi')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Products",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ProductID",
+						"type": "String"
+					},
+					{
+						"name": "ProductName",
+						"type": "String"
+					},
+					{
+						"name": "Category",
+						"type": "String"
+					},
+					{
+						"name": "ListPrice",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/Products')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/airport_bronze')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "DataTest2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "airport2.delta",
+						"fileSystem": "lht"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "airport_id",
+						"type": "INT32"
+					},
+					{
+						"name": "iata",
+						"type": "UTF8"
+					},
+					{
+						"name": "icao",
+						"type": "UTF8"
+					},
+					{
+						"name": "name",
+						"type": "UTF8"
+					},
+					{
+						"name": "address",
+						"type": "UTF8"
+					},
+					{
+						"name": "website",
+						"type": "UTF8"
+					},
+					{
+						"name": "bio",
+						"type": "UTF8"
+					},
+					{
+						"name": "city_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "city_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "country_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "country_code",
+						"type": "UTF8"
+					},
+					{
+						"name": "country_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "region_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "region_code",
+						"type": "UTF8"
+					},
+					{
+						"name": "region_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "latitude",
+						"type": "UTF8"
+					},
+					{
+						"name": "longitude",
+						"type": "UTF8"
+					},
+					{
+						"name": "data_url",
+						"type": "UTF8"
+					},
+					{
+						"name": "dap_hash",
+						"type": "UTF8"
+					},
+					{
+						"name": "__insertTimestamp",
+						"type": "UTF8"
+					},
+					{
+						"name": "__loadTimestampCurated",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/DataTest2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/airport_silver')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "DataTest2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "currated",
+						"fileSystem": "lht"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "airport_id",
+						"type": "INT32"
+					},
+					{
+						"name": "iata",
+						"type": "UTF8"
+					},
+					{
+						"name": "icao",
+						"type": "UTF8"
+					},
+					{
+						"name": "name",
+						"type": "UTF8"
+					},
+					{
+						"name": "address",
+						"type": "UTF8"
+					},
+					{
+						"name": "website",
+						"type": "UTF8"
+					},
+					{
+						"name": "bio",
+						"type": "UTF8"
+					},
+					{
+						"name": "city_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "city_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "country_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "country_code",
+						"type": "UTF8"
+					},
+					{
+						"name": "country_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "region_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "region_code",
+						"type": "UTF8"
+					},
+					{
+						"name": "region_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "latitude",
+						"type": "UTF8"
+					},
+					{
+						"name": "longitude",
+						"type": "UTF8"
+					},
+					{
+						"name": "data_url",
+						"type": "UTF8"
+					},
+					{
+						"name": "dap_hash",
+						"type": "UTF8"
+					},
+					{
+						"name": "__insertTimestamp",
+						"type": "UTF8"
+					},
+					{
+						"name": "__loadTimestampCurated",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/DataTest2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataTest2')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('DataTest2_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Products')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "https://microsoftlearning.github.io/dp-203-azure-data-engineer/Instructions/Labs/01-Explore-Azure-Synapse.html",
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('Products_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lht-workshop-prepration-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('lht-workshop-prepration-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lht-workshop-prepration-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('lht-workshop-prepration-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/0_Trainer_Create_External_Resources')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- Create a format Definition if not already\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n-- Create an external data sorce\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'lht_lhtdata_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [lht_lhtdata_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION = 'abfss://lht@lhtdata.dfs.core.windows.net' \n\t)\nGO\n\n\nCREATE EXTERNAL DATA SOURCE lhtDataSource\nWITH (\n    TYPE = HADOOP,\n    LOCATION = 'abfss://lht@lhtdata.dfs.core.windows.net/'\n);\nGO\n\n-- Create the external file format using Parquet\nCREATE EXTERNAL FILE FORMAT SynapseParquetFormat\nWITH (\n    FORMAT_TYPE = PARQUET\n);\nGO\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "AlexSQLPool",
+						"poolName": "AlexSQLPool"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/1_Demo_Files_Metastore_SQL')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "Demo on how the Table abstraction works",
+				"content": {
+					"query": "-- This runs in Spark or a Serverless SQL Engine that can use the Lake Database\n\n-- Prerequisite: Files have to be available in Storage Accoun Container in Delta Format\n-- Read data from files stored in Storage Account\nSELECT\n    TOP 5 name,city_name, country_name, iata, icao \nFROM\n    OPENROWSET(\n        BULK 'https://lhtdata.dfs.core.windows.net/lht/airport.delta/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nWHERE country_code = 'DE'\nORDER BY city_name\n\n\n-- Prerequisite: Open the Metastore in the Lake database and click add table from data lake\n-- Read data from table defined in Metastore\nSELECT\n    TOP 5 name,city_name, country_name, iata, icao \nFROM \n    flight_data.dbo.airport_registered_from_spark\nWHERE country_code = 'DE'\nORDER BY city_name\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "default",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/2_Demo_Managed_External_Tables_SQL_Pool')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- #######################################################################\n-- Case 1: Register external Table in SQL Pool Metastore\n-- #######################################################################\n\n\n-- Create external table\nCREATE EXTERNAL TABLE dbo.airports_ext (\n\t[airport_id] int,\n\t[iata] nvarchar(4000),\n\t[icao] nvarchar(4000),\n\t[name] nvarchar(4000),\n\t[address] nvarchar(4000),\n\t[website] nvarchar(4000),\n\t[bio] nvarchar(4000),\n\t[city_id] nvarchar(4000),\n\t[city_name] nvarchar(4000),\n\t[country_id] nvarchar(4000),\n\t[country_code] nvarchar(4000),\n\t[country_name] nvarchar(4000),\n\t[region_id] nvarchar(4000),\n\t[region_code] nvarchar(4000),\n\t[region_name] nvarchar(4000),\n\t[latitude] nvarchar(4000),\n\t[longitude] nvarchar(4000),\n\t[data_url] nvarchar(4000),\n\t[dap_hash] nvarchar(4000),\n\t[__insertTimestamp] nvarchar(4000),\n\t[__loadTimestampCurated] nvarchar(4000)\n\t)\n\tWITH (\n\tLOCATION = 'airport.delta',\n\tDATA_SOURCE = lhtDataSource,\n\tFILE_FORMAT = SynapseParquetFormat\n\t)\nGO\n\n\n\n-- Check Data --------------------------------------------------------------\nSELECT \n    TOP 5 name,city_name, country_name, iata, icao \nFROM dbo.airports_ext\nWHERE country_code = 'DE'\nORDER BY city_name\n\n\n\n\n\n\n-- #######################################################################\n-- Case 2: Create new table in external storage\n-- #######################################################################\n\nCREATE EXTERNAL TABLE dbo.airports_de_ext\nWITH (\n    LOCATION = 'external_tables/airports_de',\n    DATA_SOURCE = lhtDataSource,\n    FILE_FORMAT = SynapseParquetFormat\n)\nAS\nSELECT name,city_name, country_name, iata, icao \nFROM dbo.airports_ext\nWHERE country_code = 'DE'\n\n\n\n-- Check Data --------------------------------------------------------------\nSELECT \n    TOP 5 * FROM dbo.airports_de_ext\nORDER BY city_name\n\n\n\n\n-- #######################################################################\n-- Case 3: Create managed table\n-- #######################################################################\nCREATE TABLE dbo.airports_fr_int\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,         -- How the data are distributed over nodes (ROUND_ROBIN, HASH,REPLICATE)\n    CLUSTERED COLUMNSTORE INDEX         -- How the index is organised (CLUSTERED COLUMNSTORE, CLUSTERED INDEX, HEAP)\n)\nAS\nSELECT name,city_name, country_name, iata, icao \nFROM dbo.airports_ext\nWHERE country_code = 'FR'\n\n\n-- Check Data --------------------------------------------------------------\nSELECT \n    TOP 5 * FROM dbo.airports_fr_int\nORDER BY city_name\n\n\n-- #######################################################################\n-- Case 4: Create a view over a table \n-- #######################################################################\nCREATE VIEW dbo.airports_us_v\nAS\nSELECT name, city_name, country_name, iata, icao\nFROM dbo.airports_ext\nWHERE country_code = 'US';\n\n\n-- Check Data --------------------------------------------------------------\nSELECT \n    TOP 5 * FROM dbo.airports_us_v\nORDER BY city_name\n\n\n\n\n\n\n-- #######################################################################\n-- Case 5: Create parameterized stored procedure\n-- #######################################################################\nCREATE PROCEDURE dbo.GetAirportsByCountry\n    @CountryCode NVARCHAR(10)  -- Parameter to filter by country\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    SELECT TOP 5 name, city_name, country_name, iata, icao\n    FROM dbo.airports_ext\n    WHERE country_code = @CountryCode\n    ORDER BY city_name;\nEND;\nGO\n\n\nEXEC dbo.GetAirportsByCountry @CountryCode = 'US';  -- For US airports\n\nEXEC dbo.GetAirportsByCountry @CountryCode = 'DE';  -- For Germany airports\n\nEXEC dbo.GetAirportsByCountry @CountryCode = 'FR';  -- For France airports\n\n\n\n-- #######################################################################\n-- Compare DROP internal and external table\n-- #######################################################################\n\n-- managed tables all data is deleted\nDROP TABLE dbo.airports_fr_int\n\n-- external tables only the reference is removed, data still remains in storage\nDROP EXTERNAL TABLE dbo.airports_de_ext\nDROP EXTERNAL TABLE dbo.airports_ext\n\nDROP VIEW dbo.airports_us_v\nDROP PROCEDURE dbo.GetAirportsByCountry;\n\n\nSELECT * FROM dbo.airport\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SQL Pool with Metatore",
+						"poolName": "SQL Pool with Metatore"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/4_Demo_Parquet_Problem_SQL')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "\n-- Run before updating from Spark\nSELECT TOP 5 country_code, country_name,count(*) as country_counts FROM [Metastore_on_Files].[dbo].[airport] group by country_code, country_name order by country_counts desc\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Metastore_on_Files",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/1_Demo_Files_Metastore_Spark')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "e3152304-7a4d-4d35-883c-d6e41d5d23dc"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "python"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"import pyspark.sql.functions as f\n",
+							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\""
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"%run helpers"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Check the data files on the storage "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Look on the storage\n",
+							"list_files_tree(f\"{bucket}\",0,0)"
+						],
+						"outputs": [],
+						"execution_count": 64
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"In Spark the three Level Namespace consists of \n",
+							"* First Level = Catalog\n",
+							"* Second Level = Database\n",
+							"* Third Level = Table"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Check the catalog, database and tables in the metastore"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- check which catalog is connected to Spark\n",
+							"-- spark_catalog == lake database\n",
+							"-- First Level\n",
+							"\n",
+							"SHOW CATALOGS"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- SECOND LEVEL\n",
+							"SHOW DATABASES in spark_catalog"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Load and Query data in different ways\n",
+							"\n",
+							"1. directly from file\n",
+							"2. register existing file as external talbe\n",
+							"3. create managed table and fill with data\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Read direct file read"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"df_from_file = (spark\n",
+							"    # read file\n",
+							"    .read.format('delta').load('abfss://lht@lhtdata.dfs.core.windows.net/airport.delta')\n",
+							"    # filter\n",
+							"    .filter(f.col(\"country_code\")=='DE')\n",
+							"    .sort(f.col(\"city_name\"))\n",
+							"    .limit(5)\n",
+							"    )\n",
+							"\n",
+							"\n",
+							"display(df_from_file)"
+						],
+						"outputs": [],
+						"execution_count": 21
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Read via table definition\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							}
+						},
+						"source": [
+							"%%sql\n",
+							"-- create new database with root storage in our storage containter\n",
+							"CREATE DATABASE flight_data\n",
+							"LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/flight_data'"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# current tables in database\n",
+							"show_table_details(\"flight_data\")"
+						],
+						"outputs": [],
+						"execution_count": 28
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"##### Register existing Delta files as external table"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- register existing delta file as a table with a new name\n",
+							"CREATE EXTERNAL TABLE IF NOT EXISTS flight_data.airport_registered_from_spark\n",
+							"USING DELTA\n",
+							"LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/airport.delta';"
+						],
+						"outputs": [],
+						"execution_count": 31
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# current tables in database\n",
+							"show_table_details(\"flight_data\")"
+						],
+						"outputs": [],
+						"execution_count": 32
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# pyspark - dataframe API\n",
+							"df_from_table = (spark\n",
+							"    # read table\n",
+							"    .read.table(\"flight_data.airport_registered_from_spark\")\n",
+							"    # filter\n",
+							"    .filter(f.col(\"country_code\")=='DE')\n",
+							"    .sort(f.col(\"city_name\"))\n",
+							"    .limit(5)\n",
+							"    )\n",
+							"\n",
+							"\n",
+							"display(df_from_table)"
+						],
+						"outputs": [],
+						"execution_count": 33
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- spark sql api\n",
+							"\n",
+							"-- Read data from table defined in Metastore via Spark SQL\n",
+							"SELECT\n",
+							"    name,city_name, country_name, iata, icao \n",
+							"FROM \n",
+							"    flight_data.airport_registered_from_spark\n",
+							"WHERE country_code = 'DE'\n",
+							"ORDER BY city_name\n",
+							"LIMIT 5"
+						],
+						"outputs": [],
+						"execution_count": 34
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Create a new external table in some storage\n",
+							"* this time a new external table is registered on a folder that is so far empty with no Delta file "
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- register new empty delta file on an external path\n",
+							"CREATE EXTERNAL TABLE IF NOT EXISTS flight_data.airport_new_from_spark\n",
+							"USING DELTA\n",
+							"LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/external_tables/airport_new_from_spark.delta';"
+						],
+						"outputs": [],
+						"execution_count": 43
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# current tables in Metastore\n",
+							"show_table_details(\"flight_data\")"
+						],
+						"outputs": [],
+						"execution_count": 44
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"#%%sql\n",
+							"#-- SELECT * FROM flight_data.airport_new_from_spark"
+						],
+						"outputs": [],
+						"execution_count": 48
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Add ata to the empty created delta table\n",
+							"(df_from_file.write\n",
+							"  .format(\"delta\")\n",
+							"  .mode(\"append\")\n",
+							"  # the empty table has no schema, now we need to force it to overwrite it with the schea\n",
+							"  .option(\"mergeSchema\", \"true\")\n",
+							"  .saveAsTable(f\"flight_data.airport_new_from_spark\")\n",
+							"  )"
+						],
+						"outputs": [],
+						"execution_count": 50
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# show table\n",
+							"spark.sql(\"\"\"\n",
+							"    SELECT\n",
+							"        name,city_name, country_name, iata, icao \n",
+							"    FROM \n",
+							"        flight_data.airport_new_from_spark\n",
+							"    WHERE country_code = 'DE'\n",
+							"    ORDER BY city_name\n",
+							"    LIMIT 5\n",
+							"\"\"\").show()"
+						],
+						"outputs": [],
+						"execution_count": 52
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Managed Tables\n",
+							"\n",
+							"For managed tables the data and the storage location is managed by the catalog. Here the table files are stored in the default location of the database we defined when creating the databae"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Register it to the Lake Database metastore\n",
+							"(df_from_file.write\n",
+							"  .format(\"delta\")\n",
+							"  .mode(\"overwrite\")\n",
+							"  .saveAsTable(f\"flight_data.airport_managed\")\n",
+							"  )"
+						],
+						"outputs": [],
+						"execution_count": 53
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# current tables in Metastore\n",
+							"show_table_details(\"flight_data\")\n",
+							"\n",
+							"print(\"    \")\n",
+							"print(\"####################################################################\")\n",
+							"print(\"    \")\n",
+							"\n",
+							"list_files_tree(f\"{bucket}/flight_data\",0,1)"
+						],
+						"outputs": [],
+						"execution_count": 58
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- Read data from table defined in Metastore via Spark SQL\n",
+							"SELECT\n",
+							"    name,city_name, country_name, iata, icao \n",
+							"FROM \n",
+							"    flight_data.airport_managed\n",
+							"WHERE country_code = 'DE'\n",
+							"ORDER BY city_name\n",
+							"LIMIT 5"
+						],
+						"outputs": [],
+						"execution_count": 59
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Difference of managed and external tables\n",
+							"* drop of managed table removes metastore entry and deletes underlying data\n",
+							"* drop of external table only removes metastore entry"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_managed\")\n",
+							"show_table_details(\"flight_data\")\n",
+							"\n",
+							"print(\"    \")\n",
+							"print(\"####################################################################\")\n",
+							"print(\"    \")\n",
+							"\n",
+							"list_files_tree(f\"{bucket}/\",0,2)"
+						],
+						"outputs": [],
+						"execution_count": 61
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_new_from_spark\")\n",
+							"show_table_details(\"flight_data\")\n",
+							"\n",
+							"print(\"    \")\n",
+							"print(\"####################################################################\")\n",
+							"print(\"    \")\n",
+							"\n",
+							"list_files_tree(f\"{bucket}\",0,2)"
+						],
+						"outputs": [],
+						"execution_count": 62
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_registered_from_spark\")\n",
+							"show_table_details(\"flight_data\")\n",
+							"\n",
+							"print(\"####################################################################\")\n",
+							"list_files_tree(f\"{bucket}\",0,2)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 65
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- register existing delta file as a table with a new name\n",
+							"CREATE EXTERNAL TABLE IF NOT EXISTS flight_data.airport_registered_from_spark\n",
+							"USING DELTA\n",
+							"LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/airport.delta';"
+						],
+						"outputs": [],
+						"execution_count": 66
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.stop()"
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# full clean clean up\n",
+							"\n",
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport\")\n",
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_registered_from_spark\")\n",
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_new_from_spark\")\n",
+							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_managed\")\n",
+							"\n",
+							"\n",
+							"show_table_details(\"flight_data\")\n",
+							"\n",
+							"print(\"####################################################################\")\n",
+							"list_files_tree(f\"{bucket}\",0,2)\n",
+							"\n",
+							"\n",
+							"#safe_delete_path(f\"{trusted}/{user}/lab/cars\")\n",
+							"#safe_delete_path(f\"{trusted}/{user}/lab/juices\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/3_Demo_Fileformats_Spark')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "babcb095-50a4-4eb9-81b3-faa03ecc3a35"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Tasks on File and Table Formats\n",
+							"\n",
+							"The following tasks aim to familiarize you with different file formats and help understand the structure of a Delta Lake.\n",
+							"\n",
+							"### CSV and JSON\n",
+							"\n",
+							"Traditional file formats for data processing.  \n",
+							"**Key features:** Simple structure, human-readable, row-based format.\n",
+							"\n",
+							"### Avro, Parquet\n",
+							"\n",
+							"Big Data-optimized formats for fast reading and writing of large datasets.  \n",
+							"**Key features:** Splittable, compressible, skippable, self-describing (with schema), supports schema evolution and enforcement, enables filter pushdown.\n",
+							"\n",
+							"### Delta, Iceberg, Hudi\n",
+							"\n",
+							"Advanced Big Data formats that bring ACID transactions and traceability to data lakes, similar to SQL databases.  \n",
+							"**Key features:** Extended metadata and specialized readers/writers, time travel, merge and update support, audit logging capabilities."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"import pyspark.sql.functions as f\n",
+							"\n",
+							"# Path to storage account\n",
+							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net\""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"%run helpers"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"ls(\"/file_formats\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Create some sample data"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Datensatz mit Kontoständen von 2 Personen jeweils zum Monatsanfang\n",
+							"account_data1 = [\n",
+							"    (1,\"alex\",\"2019-01-01\",1000),\n",
+							"    (2,\"alex\",\"2019-02-01\",1500),\n",
+							"    (3,\"alex\",\"2019-03-01\",1700),\n",
+							"    (4,\"maria\",\"2020-01-01\",5000)\n",
+							"    ]\n",
+							"\n",
+							"# Datensatz mit einem Update und einer neuen Zeile mit einer neuen Person\n",
+							"account_data2 = [\n",
+							"    (1,\"alex\",\"2019-03-01\",3300,\"\"),\n",
+							"    (2,\"peter\",\"2021-01-01\",100,\"\")\n",
+							"    ]\n",
+							"\n",
+							"# Datensatz mit neuer Zeile die eine neuen Person und eine weitere Spalte enthällt\n",
+							"account_data3 = [\n",
+							"    (1,\"otto\",\"2019-10-01\",4444,\"neue Spalte 1\")\n",
+							"]\n",
+							"\n",
+							"schema = [\"id\",\"account\",\"dt_transaction\",\"balance\"]\n",
+							"schema3 = [\"id\",\"account\",\"dt_transaction\",\"balance\",\"new\"]\n",
+							"\n",
+							"df1 = spark.createDataFrame(data=account_data1, schema = schema).withColumn(\"dt_transaction\",f.col(\"dt_transaction\").cast(\"date\")).repartition(3)\n",
+							"df2 = spark.createDataFrame(data=account_data2, schema = schema3).withColumn(\"dt_transaction\",f.col(\"dt_transaction\").cast(\"date\")).repartition(2)\n",
+							"df3 = spark.createDataFrame(data=account_data3, schema = schema3).withColumn(\"dt_transaction\",f.col(\"dt_transaction\").cast(\"date\")).repartition(1)\n",
+							"\n",
+							"\n",
+							"\n",
+							"print(\"Container/Bucket:\", bucket)\n",
+							"print(\"++ create new dataframe and show schema and data\")\n",
+							"print(\"################################################\")\n",
+							"print(\"++ start data\")\n",
+							"df1.show(truncate=False)\n",
+							"print(\"++ update row and add row\")\n",
+							"df2.show(truncate=False)\n",
+							"print(\"++ add new column\")\n",
+							"df3.show(truncate=False)\n",
+							"df1.printSchema()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## CSV Format\n",
+							"simple human readeable text format without any schema properties"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Schreibe Datenset 1 als CSV Datei\n",
+							"write_csv=(df1\n",
+							"           .write\n",
+							"           .format(\"csv\")\n",
+							"           .mode(\"overwrite\") # append\n",
+							"           .save(f\"{bucket}/file_formats/csv\")\n",
+							"          )"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# check was für Dateien geschrieben wurden\n",
+							"ls(\"/file_formats/csv\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# checke den Inhalt der Dateien\n",
+							"cat(\"/file_formats/csv\",3)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# lese alles wieder ein um zu sprüfen ob Spaltenamen und Typ erhalten wurden\n",
+							"read_csv=spark.read.format(\"csv\").load(f\"{bucket}/file_formats/csv\")\n",
+							"\n",
+							"read_csv.printSchema()\n",
+							"read_csv.show()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Parquet Format\n",
+							"- Column format\n",
+							"- Logical partitioning using path prefixes (directories)\n",
+							"- Metadata in the footer"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Schreibe Datenset 1 als PARQUET Datei\n",
+							"write_parquet=(df1\n",
+							"    .write\n",
+							"    # Partitioniere fachlich über die Spalte account\n",
+							"    .partitionBy(\"account\")\n",
+							"    .format(\"parquet\")\n",
+							"    .mode(\"overwrite\")\n",
+							"    .save(f\"{bucket}/file_formats/parquet\")\n",
+							"    )"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# check was für Dateien geschrieben wurden\n",
+							"ls(\"/file_formats/parquet\",\"p\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# check den Inhalt der Dateien und finde den die Metadatan\n",
+							"cat(\"/file_formats/parquet\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Parquet mit Partitionsfilter laden\n",
+							"read_parquet=(spark\n",
+							"              .read.format(\"parquet\")\n",
+							"              .load(f\"{bucket}/file_formats/parquet\")\n",
+							"             )\n",
+							"\n",
+							"read_parquet.printSchema()\n",
+							"read_parquet.show()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Parquet mit Partitionsfilter laden\n",
+							"read_parquet=(spark\n",
+							"              .read.format(\"parquet\")\n",
+							"              .load(f\"{bucket}/file_formats/parquet\")\n",
+							"              # Filter auf die Spalte über die partitioniert wurde\n",
+							"              .filter(f.col(\"account\")==\"alex\")\n",
+							"             )\n",
+							"\n",
+							"# Parquet mit normalem Filter laden\n",
+							"read_parquet2=(spark\n",
+							"              .read.format(\"parquet\")\n",
+							"              .load(f\"{bucket}/file_formats/parquet\")\n",
+							"              # Filter auf die Spalte über eine normale Spalte\n",
+							"              .filter(f.col(\"balance\")>1500)\n",
+							"              .select(\"balance\")\n",
+							"             )\n",
+							"\n",
+							"# Parquet mit normalem Filter laden\n",
+							"read_parquet3=(spark\n",
+							"              .read.format(\"parquet\")\n",
+							"              .load(f\"{bucket}/file_formats/parquet\")\n",
+							"              # Filter auf die Spalte über die partitioniert wurde\n",
+							"              .filter(f.col(\"account\")==\"alex\")\n",
+							"              # Filter auf die Spalte über eine normale Spalte\n",
+							"              .filter(f.col(\"balance\")>1500)\n",
+							"              .select(\"account\",\"balance\")\n",
+							"             )\n",
+							"\n",
+							"# Anzeigen des physischen Execution Plans um zu sehen welche Filter ins Dateisystem bzw. in die Parquet Datei gepusht werden\n",
+							"print(\"Partition Filter\")\n",
+							"print(\"#######################\")\n",
+							"read_parquet.explain(\"simple\")\n",
+							"print(\"Pushdow Filter\")\n",
+							"print(\"#######################\")\n",
+							"read_parquet2.explain(\"simple\")\n",
+							"print(\"All Filter\")\n",
+							"print(\"#######################\")\n",
+							"read_parquet3.explain(\"simple\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Delta Table Format\n",
+							"- underlying format column Parqueet format\n",
+							"- Additional log metadata as JSON in a separate subdirectory"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Schreibe die Daten df1 als Delta Datei in den Pfad bucket/delta\n",
+							"write_delta=(df1\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    .option(\"overwriteSchema\", \"true\")\n",
+							"    .mode(\"overwrite\") \n",
+							"    .save(f\"{bucket}/file_formats/delta\")\n",
+							")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# check was für Dateien geschrieben wurden\n",
+							"ls(\"/file_formats/delta\",\"p\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# check was für Dateien in den Metadaten Ordner geschrieben wurden\n",
+							"ls(\"/file_formats/delta/_delta_log\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# lese alles wieder ein um zu sprüfen ob Spaltenamen und Typ hier erhalten wurden\n",
+							"read_delta=spark.read.format(\"delta\").load(f\"{bucket}/file_formats/delta\")\n",
+							"read_delta.printSchema()\n",
+							"read_delta.show()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df3.show()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Schreibe Zeile mit zusätzlicher Spalte dazu (Schema Evolution)\n",
+							"write_delta=(df3\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    # Bei Delta kann bein Schreiben gesetzt werden ob die Tabelle erweitert werden soll oder nicht, Default ist false. \n",
+							"    # Führe den Code zuerst ohne diese Option aus und schaue das Ergebnis an, dann kommentiere die Option mit true ein\n",
+							"    .option(\"mergeSchema\", \"true\")\n",
+							"    .mode(\"append\") # append\n",
+							"    .save(f\"{bucket}/file_formats/delta\")\n",
+							")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# lese alles wieder ein und Prüfe ob die Tabelle um die neue Spalte erweitert wurde\n",
+							"read_delta=spark.read.format(\"delta\").load(f\"{bucket}/file_formats/delta\")\n",
+							"read_delta.show()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"cat(\"/delta/_delta_log\",2)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# erzeuge ein Delta Tabellen Objekt\n",
+							"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/file_formats/delta\")\n",
+							"\n",
+							"# Zeige die Versionshistory der DeltaTable (wird aus den Log Dateien erzeugt)\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Rolle den Datensatz auf den alten Stand mit 4 Spalten zurück\n",
+							"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/file_formats/delta\")\n",
+							"\n",
+							"print(\"++ Bestehender Datensatz  vor rollback\")\n",
+							"deltaTable.toDF().show()\n",
+							"\n",
+							"# Verwende hierzu die DeltaTable Funktion restoreToVersion(0) oder restoreToTimestamp(\"yyyy-mm-dd\")\n",
+							"# Hier sollte ein Fehler kommen, weil sich das Schea geändert hat\n",
+							"deltaTable.restoreToVersion(0)\n",
+							"\n",
+							"\n",
+							"print(\"++ Bestehender Datensatz  nach rollback\")\n",
+							"deltaTable.toDF().show()\n",
+							"\n",
+							"# Fails and shows Schema enforcement"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Demonstrationslösung um einen rollback auf ein falsches Schema zu machen\n",
+							"(spark\n",
+							"    .read\n",
+							"    .format(\"delta\")\n",
+							"    .option(\"versionAsOf\", \"1\")\n",
+							"    .load(f\"{bucket}/file_formats/delta\")\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    .option(\"mergeSchema\", \"true\")\n",
+							"    .mode(\"overwrite\") \n",
+							"    .save(f\"{bucket}/file_formats/delta\")\n",
+							")\n",
+							"\n",
+							"read_delta=spark.read.format(\"delta\").load(f\"{bucket}/file_formats/delta\")\n",
+							"read_delta.show()"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# check was für Dateien in den Metadaten Ordner geschrieben wurden\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Delta Merge with Pyspark Dataframes"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# !!! Important schema and columns for old and new dataframe have to be the same\n",
+							"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/file_formats/delta\")\n",
+							"\n",
+							"\n",
+							"print(\"++ Bestehender Datensatz\")\n",
+							"deltaTable.toDF().show()\n",
+							"\n",
+							"print(\"++ Datensatz der im Folgenden auf bestehende Daten upserted/merged werden soll\")\n",
+							"df2.show()\n",
+							"\n",
+							"# Beispiel eines Upserts unter Verwendung der merge Funktion (es gibt auch eine update() oder delete() Funktion)\n",
+							"dt3=(deltaTable.alias(\"oldData\")\n",
+							"      .merge(df2.alias(\"newData\"),\n",
+							"            \"oldData.account = newData.account AND oldData.dt_transaction = newData.dt_transaction\")\n",
+							"            .whenMatchedUpdateAll()\n",
+							"            .whenNotMatchedInsertAll()\n",
+							"      .execute()\n",
+							"    )\n",
+							"\n",
+							"deltaTable.toDF().sort(f.col(\"account\"),f.col(\"dt_transaction\")).show()\n",
+							"\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### Delta Merge with Spark SQL"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# register dataframe as SQL table \n",
+							"df2.createOrReplaceTempView(\"newData\")\n",
+							"deltaTable.toDF().createOrReplaceTempView(\"oldData\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"MERGE INTO oldData\n",
+							"USING newData\n",
+							"ON oldData.account = newData.account AND oldData.dt_transaction = newData.dt_transaction\n",
+							"WHEN MATCHED THEN UPDATE SET *\n",
+							"WHEN NOT MATCHED THEN INSERT *"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"DESCRIBE HISTORY delta.`abfss://lht@lhtdata.dfs.core.windows.net/file_formats/delta`"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.stop()"
+						],
+						"outputs": [],
+						"execution_count": 44
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							""
+						],
+						"outputs": []
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/4_Demo_Parquet_Problem_Spark')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "34b5b569-1742-42e3-9a37-6ea6e7c9aec4"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"import pyspark.sql.functions as f\n",
+							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"%run helpers"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"list_files_tree(f\"{bucket}/airport.delta\",0,2)\n",
+							"\n",
+							"\n",
+							"#spark.sql(\"DESCRIBE DETAIL Metastore_on_Files.airport\").show(truncate=False)\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"df_airports = (spark.read.table(\"Metastore_on_Files.airport\")\n",
+							"              )\n",
+							"\n",
+							"(df_airports\n",
+							"    .groupBy(f.col(\"country_code\"),f.col(\"country_name\"))\n",
+							"    .count()\n",
+							"    .sort(f.col(\"count\").desc())\n",
+							").show(5,truncate=False)\n",
+							"\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"+------------+------------------------+-----+\n",
+							"|country_code|country_name            |count|\n",
+							"+------------+------------------------+-----+\n",
+							"|US          |United States of America|893  |\n",
+							"|CA          |Canada                  |298  |\n",
+							"|CN          |China                   |275  |\n",
+							"|AU          |Australia               |217  |\n",
+							"|RU          |Russian Federation      |215  |\n",
+							"+------------+------------------------+-----+"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"(df_airports\n",
+							"    .filter(f.col(\"country_code\")!=\"US\")\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    .mode(\"overwrite\")\n",
+							"    .saveAsTable(\"Metastore_on_Files.airport\")  \n",
+							")\n",
+							"\n",
+							"\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# erzeuge ein Delta Tabellen Objekt\n",
+							"deltaTable = DeltaTable.forName(spark,\"Metastore_on_Files.airport\")\n",
+							"\n",
+							"# Zeige die Versionshistory der DeltaTable (wird aus den Log Dateien erzeugt)\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/airport.delta\")\n",
+							"\n",
+							"# Zeige die Versionshistory der DeltaTable (wird aus den Log Dateien erzeugt)\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"(df_airports\n",
+							"    .filter(f.col(\"country_code\")==\"US\")\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    .mode(\"overwrite\")\n",
+							"    .save(f\"{bucket}/airport.delta\")  \n",
+							")\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"list_files_tree(f\"{bucket}/airport.delta\",0,2)\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df_airports = (spark.read.table(\"Metastore_on_Files.airport\")\n",
+							"              )\n",
+							"\n",
+							"(df_airports\n",
+							"    .groupBy(f.col(\"country_code\"),f.col(\"country_name\"))\n",
+							"    .count()\n",
+							"    .sort(f.col(\"count\").desc())\n",
+							").show(5,truncate=False)\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"df_airports = (spark.read.format(\"delta\").load(f\"{bucket}/airport.delta\")\n",
+							"              )\n",
+							"\n",
+							"(df_airports\n",
+							"    .groupBy(f.col(\"country_code\"),f.col(\"country_name\"))\n",
+							"    .count()\n",
+							"    .sort(f.col(\"count\").desc())\n",
+							").show(5,truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Zusammenfassung  - Unbrauchbar für Deltatabellen\n",
+							"- Synapse kann kein Delta\n",
+							"- Von Delta Tabellen werden nur die Parquet Datein im Katalog registriert \n",
+							"- Das führt zu Problemen bei der Verwendung der Delta Dateien in jeder Form von Tabellenabstraktion\n",
+							"- **Deswegen kann in Synapse der Metastore kaum verwendet werden und es sollte immer mit Spark direkt auf Dateien gearbeitet werden**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.stop()"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							""
+						],
+						"outputs": []
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/5_Delta_Tables_Solution')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "1cb0cccb-a4dd-40ed-aecf-ecdb77e06177"
+					}
+				},
+				"metadata": {
+					"saveOutput": false,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Working with Files, Catalog & Delta Tables Lab\n",
+							"This notebook provides a hands-on review of some of the features that the Delta File format brings to a Lakehouse\n",
+							"\n",
+							"Learning Objectives\n",
+							"By the end of this lab, you should be able to:\n",
+							"\n",
+							"- Create and Query Delta Tables\n",
+							"- Review table history\n",
+							"- Query previous table versions and rollback a table to a specific version\n",
+							"\n",
+							"\n",
+							"In the following we are using SparkSQL in varios notations "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# set parameters\n",
+							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+							"currated = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+							"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+							"user = \"alex\""
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"%run helpers"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Data Access\n",
+							"\n",
+							"Spark can access data directly from file or via a catalog table registration\n",
+							"\n",
+							"1. DataFrame API read from Delta File\n",
+							"````\n",
+							"df = spark.read.format(\"delta\").load(\"/path/to/data\")\n",
+							"display(df)\n",
+							"````\n",
+							"2. DataFrame API read from Table\n",
+							"```\n",
+							"df = spark.table(\"database.table\")\n",
+							"display(df)\n",
+							"```\n",
+							"\n",
+							"3. SparkSQL API read from Table\n",
+							"```\n",
+							"SELECT * FROM database.table\n",
+							"````\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# create example data\n",
+							"data = [\n",
+							"    (\"orange\", \"citrus\", 500.0, True),\n",
+							"    (\"apple\", \"sweet\", 1000.0, True),\n",
+							"    (\"beetroot\", \"earthy\", 42.5, False)\n",
+							"]\n",
+							"\n",
+							"columns = [\"name\", \"flavor\", \"milliliters\", \"refreshing\"]\n",
+							"\n",
+							"df = spark.createDataFrame(data, columns)\n",
+							"\n",
+							"\n",
+							"# write to user storage and register as external table\n",
+							"write=(df.write\n",
+							"    # define underlying format\n",
+							"    .format(\"delta\")\n",
+							"    # set path to storage location\n",
+							"    .option(\"path\", f\"{trusted}/{user}/lab/juices\")\n",
+							"    # register as table\n",
+							"    .saveAsTable(\"juices\")\n",
+							")\n",
+							"\n",
+							"df.show()\n",
+							"print(f\"Delta Table juices stored to {trusted}/{user}/lab/juices\")"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"show DATABASES"
+						],
+						"outputs": [],
+						"execution_count": 18
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# write to user storage and register as external table\n",
+							"write=(df.write\n",
+							"    # define underlying format\n",
+							"    .format(\"delta\")\n",
+							"    # set path to storage location\n",
+							"    .option(\"path\", f\"{trusted}/{user}/lab/juices4\")\n",
+							"    # register as table\n",
+							"    .saveAsTable(\"lake.juices_external\")\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"DESCRIBE HISTORY juices"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Investigate the files and tables\n",
+							"\n",
+							"You created a Delta table using saveAsTable(...) with an explicit path. Spark wrote the Delta file to the Path and automatically registers this table in the metastore database"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# TASK: how much Parquet files were writen for this delta table?\n",
+							"\n",
+							"number_of_files=4\n",
+							"\n",
+							"check_5_files(number_of_files,  f\"{trusted}/{user}/lab/juices\")"
+						],
+						"outputs": [],
+						"execution_count": 31
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# TASK: in which database was the table registered?\n",
+							"\n",
+							"database_name=\"default\"\n",
+							"\n",
+							"check_5_database(database_name,\"juices\")"
+						],
+						"outputs": [],
+						"execution_count": 44
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Read data in different ways\n",
+							"\n",
+							"You created a Delta table using saveAsTable(...) with an explicit path. Spark wrote the Delta file to the Path and automatically registers this table in a catalog."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# read the delta file directly from the path using pyspark\n",
+							"\n",
+							"df_pyspark_file = spark.read.format(\"delta\").load(f\"{trusted}/{user}/lab/juices\")\n",
+							"\n",
+							"display(df_pyspark_file)"
+						],
+						"outputs": [],
+						"execution_count": 45
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# use Pyspark from table \n",
+							"\n",
+							"df_pyspark_table = spark.table(\"juices\")\n",
+							"\n",
+							"display(df_pyspark_table)"
+						],
+						"outputs": [],
+						"execution_count": 46
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Coding styles\n",
+							"Working in Spark Notebooks supports three different coding styles that translate to the same Spark statement.\n",
+							"For example reading from a table from the metastore\n",
+							"\n",
+							"1. DataFrame API (PySpark/Scala/SQL)\n",
+							"```\n",
+							"df = spark.table(\"cars\")\n",
+							"filtered = df.filter(df[\"horsepower\"] > 100)\n",
+							"filtered.show()\n",
+							"\n",
+							"# or\n",
+							"\n",
+							"(spark\n",
+							"  .table(\"cars\")\n",
+							"  .filter(df[\"horsepower\"] > 100)\n",
+							").show()\n",
+							"\n",
+							"````\n",
+							"\n",
+							"2. SparkSQL API (SQL wrapped in Pyspark)\n",
+							"```\n",
+							"result = spark.sql(\"\"\"\n",
+							"  SELECT *\n",
+							"  FROM cars \n",
+							"  WHERE horsepower > 100 \n",
+							"\"\"\")\n",
+							"result.show()\n",
+							"```\n",
+							"\n",
+							"3. PlainSQL (via cell magic)\n",
+							"```\n",
+							"%%sql\n",
+							"SELECT *\n",
+							"FROM cars \n",
+							"WHERE horsepower > 100 \n",
+							"```\n",
+							""
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Solve the filter task with all three coding styles\n",
+							"\n",
+							"Task: Filter the juices where `refreshing=true`"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## "
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# filter with DataFrame API\n",
+							"result = spark.table(\"juices\").where(f.col(\"refreshing\")==True)\n",
+							"\n",
+							"display(result)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 47
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# Filter with SparkSQL API\n",
+							"result = spark.sql(\"\"\"\n",
+							"  SELECT *\n",
+							"  FROM juices \n",
+							"  WHERE refreshing = True\n",
+							"\"\"\")\n",
+							"\n",
+							"display(result)"
+						],
+						"outputs": [],
+						"execution_count": 48
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- Filter with PlainSQL\n",
+							"SELECT *\n",
+							"FROM juices \n",
+							"WHERE refreshing = True"
+						],
+						"outputs": [],
+						"execution_count": 49
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Delta File History\n",
+							"\n",
+							"Docu: https://docs.delta.io/latest/quick-start.html\n",
+							"\n",
+							"The cell below creates a new delta table registered as external table in the database and runs several operations on it (INSERT, DELETE, MERGE)\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# in case the script did already run once \n",
+							"# 1. Drop table from metastore\n",
+							"spark.sql(\"DROP TABLE IF EXISTS cars\")\n",
+							"# 2. Remove files from the associated Delta path\n",
+							"safe_delete_path(f\"{trusted}/{user}/lab/cars\")\n",
+							"\n",
+							"\n",
+							"# 1. Version of Delta Table: create a external delta table\n",
+							"spark.sql(f\"\"\"\n",
+							"CREATE TABLE cars\n",
+							"(\n",
+							"  model STRING,\n",
+							"  company STRING,\n",
+							"  horsepower FLOAT,\n",
+							"  electric BOOLEAN\n",
+							")\n",
+							"USING DELTA\n",
+							"LOCATION '{trusted}/{user}/lab/cars'\n",
+							"\"\"\")\n",
+							"\n",
+							"# 2. Version of Delta Table: add 3 rows\n",
+							"spark.sql(\"\"\"\n",
+							"INSERT INTO cars VALUES\n",
+							"(\"Model 3\", \"Tesla\", 283, false),\n",
+							"(\"Golf\", \"Volkswagen\", 110, false),\n",
+							"(\"C-Class\", \"Mercedes-Benz\", 204, false)\n",
+							"\"\"\")\n",
+							"\n",
+							"# 3. Version of Delta Table: add another 3 rows\n",
+							"spark.sql(\"\"\"\n",
+							"INSERT INTO cars VALUES\n",
+							"(\"A3\", \"Audi\", 150, false),\n",
+							"(\"Zoe\", \"Renault\", 100, true),\n",
+							"(\"320i\", \"BMW\", 184, false),\n",
+							"(\"Alex\", \"Ortner\", 1000, false)\n",
+							"\"\"\")\n",
+							"\n",
+							"# 4. Version of Delta Table: update the row of the Tesla Model 3\n",
+							"spark.sql(\"\"\"\n",
+							"UPDATE cars\n",
+							"SET electric = true\n",
+							"WHERE model = \"Model 3\" and company = \"Tesla\"\n",
+							"\"\"\").show()\n",
+							"\n",
+							"# 5. Version of Delta Table: optimize the table to reduce small files\n",
+							"spark.sql(\"OPTIMIZE cars\")\n",
+							"\n",
+							"# 6. Version of Delta Table: update the row of the Audi\n",
+							"spark.sql(\"\"\"\n",
+							"UPDATE cars\n",
+							"SET horsepower = 400\n",
+							"WHERE model = 'A3'\n",
+							"\"\"\").show()\n",
+							"\n",
+							"# 7. Version of Delta Table: delete wrong entry Alex\n",
+							"spark.sql(\"\"\"\n",
+							"DELETE FROM cars\n",
+							"WHERE model = 'Alex'\n",
+							"\"\"\").show()\n",
+							"\n",
+							"\n",
+							"\n",
+							"# create a new temp table\n",
+							"spark.sql(\"\"\"\n",
+							"CREATE OR REPLACE TEMP VIEW new_cars(model, company, horsepower, electric) AS VALUES\n",
+							"('Model 3', 'Tesla', 200, true),\n",
+							"('320i', 'BMW', 100, true),\n",
+							"('Taycan', 'Porsche', 616, true),\n",
+							"('Punto', 'Fiat', 35, false)\n",
+							"\"\"\")\n",
+							"\n",
+							"# 8. Version of Delta Table: merge the new temp table into the existing delta table\n",
+							"spark.sql(\"\"\"\n",
+							"MERGE INTO cars a\n",
+							"    USING new_cars b\n",
+							"    ON a.model = b.model AND a.company = b.company\n",
+							"    WHEN MATCHED THEN\n",
+							"        UPDATE SET horsepower = a.horsepower + b.horsepower\n",
+							"    WHEN NOT MATCHED AND b.electric = true THEN\n",
+							"        INSERT *\n",
+							"\"\"\").show()\n",
+							"\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Review the Table History\n",
+							"Delta Lake's transaction log stores information about each transaction that modifies a table's contents or settings.\n",
+							"\n",
+							"Review the history of the cars table below."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"DESCRIBE HISTORY cars"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"If all the previous operations were completed as described, you should see **8 versions** of the table  \n",
+							"(**NOTE:** Delta Lake versioning starts with `0`, so the max version number will be `7`).\n",
+							"\n",
+							"---\n",
+							"\n",
+							"The operations should be as follows:\n",
+							"\n",
+							"| Version | Operation   |\n",
+							"|---------|-------------|\n",
+							"| 0       | CREATE TABLE |\n",
+							"| 1       | WRITE        |\n",
+							"| 2       | WRITE        |\n",
+							"| 3       | UPDATE       |\n",
+							"| 4       | OPTIMIZE     |\n",
+							"| 5       | UPDATE       |\n",
+							"| 6       | DELETE       |\n",
+							"| 7       | MERGE        |\n",
+							"\n",
+							"---\n",
+							"\n",
+							"- The `operationParameters` column will let you review **predicates used** for updates, deletes, and merges.  \n",
+							"- The `operationMetrics` column indicates **how many rows and files** were added in each operation.\n",
+							"- The `version` column designates the state of a table *once a given transaction completes*.  \n",
+							"- The `readVersion` column indicates the version of the table an operation **executed against**.  \n",
+							"- In this simple demo (with no concurrent transactions), this relationship should always **increment by 1**.\n",
+							"\n",
+							"---\n",
+							"> **TASK:**\n",
+							"> - Spend some time reviewing the **Delta Lake history** to understand which table version matches with a given transaction.   \n",
+							"> - Use the DataFrame API to select some relevant columns and split up the nested JSONS\n",
+							">\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Creata a Python DeltaTable Object\n",
+							"deltaTable = DeltaTable.forName(spark, \"cars\")\n",
+							"\n",
+							"\n",
+							"# check the schema to see all available fields\n",
+							"deltaTable.history().printSchema()\n",
+							"\n",
+							"# show some history metrics\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Query a Specific Version\n",
+							"After reviewing the table history, you decide you want to view the state of your table after your very first data was inserted.\n",
+							"\n",
+							"you can use SQL Style on the table abstraction\n",
+							"```\n",
+							"SELECT * FROM my_table VERSION AS OF 10\n",
+							"````\n",
+							"\n",
+							"or DataFrame Style on the table abstraction\n",
+							"```\n",
+							"df = (spark.read.format(\"delta\")\n",
+							"    .option(\"versionAsOf\", 5)\n",
+							"    .table(\"my_table\")\n",
+							"    )\n",
+							"display(df)\n",
+							"````\n",
+							"\n",
+							"or DataFrame Style on the Delta file\n",
+							"```\n",
+							"df = (spark.read.format(\"delta\")\n",
+							"    .option(\"versionAsOf\", 5)\n",
+							"    .load(\"/path/to/my_table\")\n",
+							"    )\n",
+							"display(df)\n",
+							"```\n",
+							"\n",
+							"Instead of loading an old version of the Delta table you could also to a time travel by using a past timestamp. Just replace `VersionAsOf` with `TimestampAsOf` \n",
+							"\n",
+							"```\n",
+							"TIMESTAMP AS OF '2024-04-03T10:00:00Z'\n",
+							"\n",
+							"or \n",
+							".option(\"timestampAsOf\", \"2024-04-03T10:00:00Z\")\n",
+							"```\n",
+							"\n",
+							"---\n",
+							"> **TASK:**\n",
+							"> - try out at least 4 different ways to time travel"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# 1. SQL with VERSION AS OF to version 1\n",
+							"df = spark.sql(\"SELECT * FROM cars VERSION AS OF 1\")\n",
+							"df.show()"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# 2. SQL with TIMESTAMP AS OF before deleting \n",
+							"df = spark.sql(\"SELECT * FROM cars TIMESTAMP AS OF '2025-04-03 21:48:20.759'\")\n",
+							"df.show()"
+						],
+						"outputs": [],
+						"execution_count": 19
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# 3. DataFrame API with versionAsOf to version 5\n",
+							"df = (spark.read.format(\"delta\")\n",
+							"    .option(\"versionAsOf\", 5)\n",
+							"    .table(\"cars\")\n",
+							"    )\n",
+							"\n",
+							"df.show()"
+						],
+						"outputs": [],
+						"execution_count": 20
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# 4. DataFrame API with timestampAsOf and file path to the time after delete but before merge\n",
+							"df = (spark.read.format(\"delta\")\n",
+							"    .option(\"timestampAsOf\", \"2025-04-03 21:48:20.759\")\n",
+							"    .load(f\"{trusted}/{user}/lab/cars\")\n",
+							"    )\n",
+							"\n",
+							"df.show()"
+						],
+						"outputs": [],
+						"execution_count": 21
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Restore a Previous Version\n",
+							"Delta allows you to role back to older versions of the history \n",
+							"\n",
+							"SQL Style\n",
+							"```\n",
+							"RESTORE TABLE my_table TO VERSION AS OF my_version\n",
+							"```\n",
+							"\n",
+							"Pyspark Style\n",
+							"There is no direct DataFrame API equivalent but a DeltaTable API function that can be used\n",
+							"```\n",
+							"deltaTable = DeltaTable.forPath(spark, file_oath)\n",
+							"or\n",
+							"deltaTable = DeltaTable.forName(spark, table_name)\n",
+							"\n",
+							"# Restore the table to a previous version\n",
+							"deltaTable.restoreToVersion(my_version)\n",
+							"```\n",
+							"\n",
+							"\n",
+							"---\n",
+							"> **TASK:**    \n",
+							"> - Revert the table to the version before the MERGE statement completed.    \n",
+							"> - Review the history of your table. Make note of the fact that restoring to a previous version adds another table version.\n",
+							"\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Restore using DeltaTable API\n",
+							"deltaTable.restoreToVersion(6)"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"-- Restore using PlainSQL\n",
+							"\n",
+							"RESTORE TABLE cars TO VERSION AS OF 7"
+						],
+						"outputs": [],
+						"execution_count": 25
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# show history\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\",\"operationParameters.version\").show(truncate=False)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 26
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"DESCRIBE EXTENDED cars"
+						],
+						"outputs": [],
+						"execution_count": 27
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Conclusion\n",
+							"**Delta Tables are made for Synapse Spark**   \n",
+							"Not for\n",
+							"* Serverless SQL Engine\n",
+							"* SQL Pool Engine"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Clean Up \n",
+							"run this code to remove the data from storage and database"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"# 1. Drop cars table from metastore\n",
+							"spark.sql(\"DROP TABLE IF EXISTS cars\")\n",
+							"# 1. Drop juices table from metastore\n",
+							"spark.sql(\"DROP TABLE IF EXISTS juices\")\n",
+							"# 2. Remove files from the associated Delta path\n",
+							"safe_delete_path(f\"{trusted}/{user}/lab/cars\")\n",
+							"safe_delete_path(f\"{trusted}/{user}/lab/juices\")"
+						],
+						"outputs": [],
+						"execution_count": 50
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/5_Excercise_Solution_Delta_Files')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "fea1477c-bdf9-4562-9a37-83fe2a11e80b"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Exercise working with Delta files\r\n",
+							"\r\n",
+							"1. Read FR24 delta file from currated container into dataframe\r\n",
+							"2. Write FR24 as delta file into trusted/user folder\r\n",
+							"3. query data via spark dataframes\r\n",
+							"4. check delta history via spark dataframes\r\n",
+							"5. register as external table\r\n",
+							"6. query data via sql\r\n",
+							"7. query data history via sql\r\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"import pyspark.sql.functions as f\r\n",
+							"currated = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\r\n",
+							"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\r\n",
+							"user = \"alex\""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"%run helpers"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### 1. Read FR24 Data in Dataframe\r\n",
+							"\r\n",
+							"Read Flight Radar Data (fr24) from  `currated` into user bronze layer `trusted/username/bronze/fr24`"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# find the path on the storage\r\n",
+							"list_files_tree(currated)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Exercise\r\n",
+							"df_fr24 = (spark\r\n",
+							"    .read\r\n",
+							"    # file format\r\n",
+							"    .format('<FILE FORMAT>')\r\n",
+							"    # path\r\n",
+							"    .load(f'{bucket}/<FILE DIRECTORY>')\r\n",
+							")\r\n",
+							"\r\n",
+							"# show schema\r\n",
+							"df_fr24.printSchema()\r\n",
+							"\r\n",
+							"# show dataframe\r\n",
+							"display(df_fr24.limit(10))"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": true,
+								"outputs_hidden": true
+							},
+							"collapsed": false,
+							"tags": [
+								"parameters"
+							]
+						},
+						"source": [
+							"# Solution\r\n",
+							"df_fr24 = (spark\r\n",
+							".read\r\n",
+							"# file format\r\n",
+							".format('delta')\r\n",
+							"# path\r\n",
+							".load(f'{currated}/fr24.delta')\r\n",
+							")\r\n",
+							"\r\n",
+							"# show schema\r\n",
+							"df_fr24.printSchema()\r\n",
+							"\r\n",
+							"# show dataframe\r\n",
+							"display(df_fr24.limit(10))"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### 2. Write data in user folder as Delta file\r\n",
+							"write into your own user folder into the bronze layer\r\n",
+							"\r\n",
+							"`storage/username/bronze/fr24.delta`"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Exercise\r\n",
+							"write=(df_fr24\r\n",
+							"    .write\r\n",
+							"    .format(\"<FILE FORMAT>\")\r\n",
+							"    .mode(\"overwrite\") \r\n",
+							"    .save(f\"{trusted}/{user}/<ADD BRONZE FOLDER>\")\r\n",
+							")\r\n",
+							"\r\n",
+							"# check the storage\r\n",
+							"list_files_tree(f\"{bucket}/{user}/\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"outputs_hidden": true,
+								"source_hidden": true
+							}
+						},
+						"source": [
+							"# Solution\r\n",
+							"write=(df_fr24\r\n",
+							"    .write\r\n",
+							"    .format(\"delta\")\r\n",
+							"    .mode(\"overwrite\") \r\n",
+							"    .save(f\"{trusted}/{user}/bronze/fr24.delta\")\r\n",
+							")\r\n",
+							"\r\n",
+							"# check the storage\r\n",
+							"list_files_tree(f\"{trusted}/{user}/\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### 3. Check Delta history\r\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# Creata a DeltaTable Object\r\n",
+							"deltaTable = DeltaTable.forPath(spark, f\"{trusted}/{user}/bronze/fr24.delta\")\r\n",
+							"\r\n",
+							"# show some history metrics\r\n",
+							"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#### 4. Use Delta ACID API to delete some rows from the dataset\r\n",
+							"\r\n",
+							"Delete all rows where the columns `operator` IS NULL.   \r\n",
+							"Check the documentation https://docs.delta.io/latest/delta-update.html"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# count rows where operator is null \r\n",
+							"(deltaTable\r\n",
+							"    .toDF()\r\n",
+							"    .where(f.col(\"operator\").isNull())\r\n",
+							"    .count()\r\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 33
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Exercise\r\n",
+							"# delete all rows where operator IS NULL using the correct delta function\r\n",
+							"<ADD CORRECT CODE>"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": true
+							}
+						},
+						"source": [
+							"# Solution\r\n",
+							"# delete all rows where operator IS NULL\r\n",
+							"deltaTable.delete(\"operator IS NULL\")"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Exercise\r\n",
+							"# check history again to check if the delete worked\r\n",
+							"deltaTable.<ADD CORRECT CODE>"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false
+							},
+							"collapsed": false
+						},
+						"source": [
+							"# Solution\r\n",
+							"# check history again\r\n",
+							"(deltaTable\r\n",
+							"    .history()\r\n",
+							"    .select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\")\r\n",
+							").show(truncate=False)"
+						],
+						"outputs": [],
+						"execution_count": 34
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Exercise\r\n",
+							"# check rows where corecctly removed\r\n",
+							"\r\n",
+							"<ADD CODE>"
+						],
+						"outputs": [],
+						"execution_count": 28
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Solution\r\n",
+							"# Role back to version with null values\r\n",
+							"deltaTable.restoreToVersion(1)"
+						],
+						"outputs": [],
+						"execution_count": 37
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\r\n",
+							"# Solution\r\n",
+							"# check history again\r\n",
+							"(deltaTable\r\n",
+							"    .history()\r\n",
+							"    .select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\")\r\n",
+							").show(truncate=False)\r\n",
+							"\r\n",
+							"\r\n",
+							"# count rows where operator is null \r\n",
+							"rows_null = (deltaTable\r\n",
+							"    .toDF()\r\n",
+							"    .where(f.col(\"operator\").isNull())\r\n",
+							"    .count()\r\n",
+							")\r\n",
+							"\r\n",
+							"print(\"Rows with Null value:\", rows_null)"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							""
+						],
+						"outputs": []
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/helpers')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "e34e1326-334e-4a0f-802b-803436acdccc"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"import datetime\n",
+							"from datetime import datetime, timedelta\n",
+							"import time\n",
+							"import json\n",
+							"import csv\n",
+							"from delta import *\n",
+							"from tabulate import tabulate\n",
+							"STORAGE_BASE_PATH=bucket\n",
+							"import pyspark.sql.functions as f\n",
+							""
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"\n",
+							"\n",
+							"def list_parquet_files_recursive(path, visited_paths=None):\n",
+							"    \"\"\" Recursively lists all .parquet files inside a given directory while avoiding infinite loops \"\"\"\n",
+							"    if visited_paths is None:\n",
+							"        visited_paths = set()\n",
+							"\n",
+							"    try:\n",
+							"        # Ensure path is not revisited\n",
+							"        if path in visited_paths:\n",
+							"            return []\n",
+							"        visited_paths.add(path)\n",
+							"\n",
+							"        # Check if path exists\n",
+							"        if not mssparkutils.fs.exists(path):\n",
+							"            print(f\"Skipping non-existent path: {path}\")\n",
+							"            return []\n",
+							"\n",
+							"        # Get directory listing\n",
+							"        items = mssparkutils.fs.ls(path)\n",
+							"        if items is None:\n",
+							"            print(f\"Warning: mssparkutils.fs.ls({path}) returned None\")\n",
+							"            return []\n",
+							"\n",
+							"        parquet_files = []\n",
+							"\n",
+							"        for item in items:\n",
+							"            if item.name.endswith(\".parquet\"):  # If it's a Parquet file, store it\n",
+							"                parquet_files.append(item.path)\n",
+							"            elif not item.name.startswith(\"_\") and \".\" not in item.name:  \n",
+							"                # If it's a subdirectory, recurse into it\n",
+							"                subdir_files = list_parquet_files_recursive(item.path, visited_paths)\n",
+							"                parquet_files.extend(subdir_files)\n",
+							"\n",
+							"        return parquet_files\n",
+							"\n",
+							"    except Exception as e:\n",
+							"        print(f\"Error accessing {path}: {e}\")\n",
+							"        return []\n",
+							"\n",
+							"\n",
+							"def ls(path, type=\"x\"):\n",
+							"    try:\n",
+							"        fsoutput = mssparkutils.fs.ls(STORAGE_BASE_PATH + path)\n",
+							"\n",
+							"        file_endings = [\".csv\", \".json\", \".avro\", \".parquet\", \"account=\", \"_delta_log\"]\n",
+							"        file_endings_ignore = [\".crc\", \"__tmp\", \"checkpoint.parquet\"]\n",
+							"\n",
+							"        if type == \"p\":\n",
+							"            # Call function on subfolder 'parquet'\n",
+							"            parquet_files = list_parquet_files_recursive(STORAGE_BASE_PATH + path)\n",
+							"\n",
+							"            # Print cleaned output (without base path)\n",
+							"            for file in parquet_files:\n",
+							"                print(file.replace(STORAGE_BASE_PATH + \"/\", \"\"))\n",
+							"\n",
+							"        else:\n",
+							"            for file in fsoutput:\n",
+							"                if (any(x in file.name for x in file_endings)) and (not any(x in file.name for x in file_endings_ignore)):\n",
+							"                    if \"/parquet\" in path:\n",
+							"                        print(file.name.split(\"/\")[3])\n",
+							"                        for subfile in mssparkutils.fs.ls(file.path):\n",
+							"                            if \".parquet\" in subfile.name:\n",
+							"                                print(subfile.path)\n",
+							"                    else:\n",
+							"                        print(file.name)\n",
+							"    except Exception as e:\n",
+							"        print(e)\n",
+							"\n",
+							"\n",
+							"\n",
+							"# Function to show content of one or several files with the same prefix/wildcard\n",
+							"def cat(path, number_to_show=1):\n",
+							"    '''Show content of one or several files with the same prefix or wildcard'''\n",
+							"    try:\n",
+							"        # List files in the specified path\n",
+							"        fsoutput = mssparkutils.fs.ls(STORAGE_BASE_PATH + path)\n",
+							"        filelist = []\n",
+							"\n",
+							"        # Define valid file types and ignored files\n",
+							"        file_endings = [\".csv\", \".json\", \".avro\", \".parquet\", \"account=\"]\n",
+							"        file_endings_ignore = [\".crc\", \"__tmp\", \"checkpoint.parquet\"]\n",
+							"\n",
+							"        # Filter valid files\n",
+							"        for file in fsoutput:\n",
+							"            if (any(x in file.name for x in file_endings)) and (not any(x in file.name for x in file_endings_ignore)):\n",
+							"                if \"/parquet\" in path:\n",
+							"                    for file2 in mssparkutils.fs.ls(file.path):\n",
+							"                        if (\".parquet\" in file2.name) and (any(x in file2.name for x in file_endings)) and (not any(x in file2.name for x in file_endings_ignore)):\n",
+							"                            filelist.append(file2.path)\n",
+							"                else:\n",
+							"                    filelist.append(file.path)\n",
+							"\n",
+							"        # Display content of the selected files\n",
+							"        for file in filelist[:number_to_show]:\n",
+							"            print(\"##########################################################\")\n",
+							"            print(f\"File: {file.replace(STORAGE_BASE_PATH + '/', '')}\")\n",
+							"            print(\"----------------------------------------------------------\")\n",
+							"            print(mssparkutils.fs.head(file))  # Read and display file content\n",
+							"\n",
+							"    except Exception as e: \n",
+							"        print(e)"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"def show_table_details(db_name):\n",
+							"    tables = spark.catalog.listTables(db_name)\n",
+							"\n",
+							"    results = []\n",
+							"\n",
+							"    for table in tables:\n",
+							"        full_table_name = f\"{db_name}.{table.name}\"\n",
+							"        \n",
+							"        try:\n",
+							"            details = spark.sql(f\"DESCRIBE EXTENDED {full_table_name}\").collect()\n",
+							"            location_row = next((row for row in details if \"Location\" in row[0]), None)\n",
+							"            location = location_row[1] if location_row else \"N/A\"\n",
+							"            \n",
+							"            results.append([table.name, table.tableType, location])\n",
+							"        except Exception as e:\n",
+							"            results.append([table.name, table.tableType, f\"Error: {e}\"])\n",
+							"\n",
+							"    # Print as table\n",
+							"    print(tabulate(results, headers=[\"Table Name\", \"Type\", \"Path\"], tablefmt=\"github\"))\n",
+							"\n",
+							"\n",
+							"def list_files_tree(path, indent=0, max_depth=1, ignore_folders=None):\n",
+							"    if ignore_folders is None:\n",
+							"        ignore_folders = [\"_delta_log\", \"__pycache__\",\".DS_Store\"]\n",
+							"\n",
+							"    try:\n",
+							"        items = mssparkutils.fs.ls(path)\n",
+							"        for item in items:\n",
+							"            # Check if the current item's name matches any ignored folder\n",
+							"            if any(ignored in item.name for ignored in ignore_folders):\n",
+							"                continue\n",
+							"\n",
+							"            print(\"  \" * indent + f\"- {item.name}\")\n",
+							"\n",
+							"            # Only recurse into subdirectories if within depth and not ignored\n",
+							"            if item.isDir and indent < max_depth:\n",
+							"                list_files_tree(item.path, indent + 1, max_depth, ignore_folders)\n",
+							"    except Exception as e:\n",
+							"        print(\"  \" * indent + f\"[Error accessing {path}]: {e}\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# User Task test files\n",
+							"from typing import Union\n",
+							"from pyspark.sql.functions import input_file_name\n",
+							"\n",
+							"def check_5_files(user_count: Union[int, str], delta_path: str):\n",
+							"    \"\"\"\n",
+							"    Test if the manually observed parquet file count matches the actual number of Delta data files.\n",
+							"    \n",
+							"    Parameters:\n",
+							"    - user_count: The number of files the user claims to have counted manually.\n",
+							"    - delta_path: The Delta table path.\n",
+							"    \n",
+							"    Behavior:\n",
+							"    - Filters for only .parquet files (excludes _delta_log)\n",
+							"    - Handles cases where table was accidentally written multiple times (more files)\n",
+							"    \"\"\"\n",
+							"    try:\n",
+							"        # Get actual list of files from mssparkutils (Synapse-friendly)\n",
+							"        files = mssparkutils.fs.ls(delta_path)\n",
+							"        parquet_files = [f for f in files if f.name.endswith(\".parquet\")]\n",
+							"        actual_count = len(parquet_files)\n",
+							"        \n",
+							"        # Parse user input to int (in case they entered as string)\n",
+							"        expected_count = int(user_count)\n",
+							"\n",
+							"        #print(f\"✅ Actual number of .parquet data files in Delta table: {actual_count}\")\n",
+							"        #print(f\"👤 User-reported file count: {expected_count}\")\n",
+							"\n",
+							"        if actual_count == expected_count:\n",
+							"            print(\"🎉 SUCCESS: Your file count is correct!\")\n",
+							"        else:\n",
+							"            print(\"⚠️ Oops! Your file count doesn't match.\")\n",
+							"            print(f\"✅ Actual number of .parquet data files in Delta table path {delta_path}: {actual_count}\")\n",
+							"            print(f\"👤 User-reported file count: {expected_count}\")\n",
+							"            #print(\"Tip: Did you account for accidental overwrites or appends?\")\n",
+							"    \n",
+							"    except Exception as e:\n",
+							"        print(f\"❌ Error: {e}\")\n",
+							"\n",
+							"\n",
+							"\n",
+							"def check_5_database(user_database: str, expected_table: str = \"juices\"):\n",
+							"    \"\"\"\n",
+							"    Validates whether the given database contains the expected table.\n",
+							"\n",
+							"    Parameters:\n",
+							"    - user_database: The database name the user identified (e.g., 'default').\n",
+							"    - expected_table: The table name to look for (default: 'juices').\n",
+							"    \"\"\"\n",
+							"    try:\n",
+							"        # Get all available databases\n",
+							"        databases = [db.name for db in spark.catalog.listDatabases()]\n",
+							"        if user_database not in databases:\n",
+							"            print(f\"⚠️ Oops! Database '{user_database}' not found. Available databases: {databases}\")\n",
+							"            return\n",
+							"\n",
+							"        # Use SQL to list tables in the given database\n",
+							"        result = spark.sql(f\"SHOW TABLES IN {user_database}\").collect()\n",
+							"        table_names = [row[\"tableName\"] for row in result]\n",
+							"\n",
+							"        if expected_table in table_names:\n",
+							"            print(f\"🎉 SUCCESS: Table '{expected_table}' is correctly registered in database '{user_database}'\")\n",
+							"        else:\n",
+							"            print(f\"⚠️ Oops! Database '{user_database}' exists, but table '{expected_table}' was not found there.\")\n",
+							"\n",
+							"    except Exception as e:\n",
+							"        print(f\"Error while checking table in database '{user_database}': {e}\")"
+						],
+						"outputs": []
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"def safe_delete_path(path: str, recurse: bool = True):\n",
+							"    \"\"\"\n",
+							"    Deletes a path using mssparkutils.fs.rm(), but only prints output if there's an error.\n",
+							"    Silently skips if the path does not exist.\n",
+							"    \"\"\"\n",
+							"    try:\n",
+							"        mssparkutils.fs.rm(path, recurse=recurse)\n",
+							"    except Exception as e:\n",
+							"        if \"PathNotFoundException\" not in str(e):\n",
+							"            print(f\"Error deleting path {path}: {e}\")"
+						],
+						"outputs": []
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sparkConfiguration1')]",
+			"type": "Microsoft.Synapse/workspaces/sparkConfigurations",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"configs": {
+					"spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+					"spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog"
+				},
+				"created": "2025-03-20T22:09:59.208Z",
+				"createdBy": "aortner@thinkport.digital",
+				"annotations": [],
+				"configMergeRule": {
+					"artifact.currentOperation.spark.sql.extensions": "replace",
+					"artifact.currentOperation.spark.sql.catalog.spark_catalog": "replace"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/UI_database')]",
+			"type": "Microsoft.Synapse/workspaces/databases",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"Ddls": [
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "UI_database",
+							"EntityType": "DATABASE",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"Properties": {
+								"IsSyMSCDMDatabase": true
+							},
+							"Source": {
+								"Provider": "ADLS",
+								"Location": "abfss://lht@lhtdata.dfs.core.windows.net/",
+								"Properties": {
+									"FormatType": "parquet",
+									"LinkedServiceName": "DataTest2"
+								}
+							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "test_from_delta",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "UI_database"
+							},
+							"Description": "",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "airport_id",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										}
+									},
+									{
+										"Name": "iata",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "icao",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "name",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "address",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "website",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "bio",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "city_id",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "city_name",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "country_id",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "country_code",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "country_name",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "region_id",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "region_code",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "region_name",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "latitude",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "longitude",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "data_url",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "dap_hash",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "__insertTimestamp",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									},
+									{
+										"Name": "__loadTimestampCurated",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										}
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+									"Properties": {
+										"path": "abfss://lht@lhtdata.dfs.core.windows.net/airport.delta",
+										"FormatTypeSetToDatabaseDefault": false
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://lht@lhtdata.dfs.core.windows.net/airport.delta",
+									"Properties": {
+										"LinkedServiceName": "DataTest2",
+										"LocationSetToDatabaseDefault": false
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"Description": "",
+								"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
+								"PrimaryKeys": "",
+								"spark.sql.sources.provider": "parquet"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lake')]",
+			"type": "Microsoft.Synapse/workspaces/databases",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"Ddls": [
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "lake",
+							"EntityType": "DATABASE",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"Properties": {
+								"IsSyMSCDMDatabase": true
+							},
+							"Source": {
+								"Provider": "ADLS",
+								"Location": "abfss://lht@lhtdata.dfs.core.windows.net/",
+								"Properties": {
+									"FormatType": "parquet",
+									"LinkedServiceName": "DataTest2"
+								}
+							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL Pool with Metatore')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westeurope"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AlexSparkPool')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 10,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.4",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westeurope"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Sparkpool01')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 5,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.4",
+				"isComputeIsolationEnabled": false,
+				"sparkConfigProperties": {
+					"configurationType": "Artifact",
+					"filename": "sparkConfiguration1",
+					"content": "{\"name\":\"sparkConfiguration1\",\"properties\":{\"configs\":{\"spark.sql.extensions\":\"io.delta.sql.DeltaSparkSessionExtension\",\"spark.sql.catalog.spark_catalog\":\"org.apache.spark.sql.delta.catalog.DeltaCatalog\"},\"annotations\":[],\"type\":\"Microsoft.Synapse/workspaces/sparkconfigurations\",\"description\":\"\",\"notes\":\"\",\"created\":\"2025-03-20T23:09:59.2080000+01:00\",\"createdBy\":\"aortner@thinkport.digital\",\"configMergeRule\":{\"admin.currentOperation.spark.sql.extensions\":\"replace\",\"admin.currentOperation.spark.sql.catalog.spark_catalog\":\"replace\"}}}",
+					"time": "2025-03-20T22:11:13.7601271Z"
+				},
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westeurope"
+		}
+	]
+}
