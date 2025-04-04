@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "f97eace7-c0a0-4d31-8fff-bfe25a389873"
+				"spark.autotune.trackingId": "28b15677-fa2a-4023-97ab-6b1df3a07b01"
 			}
 		},
 		"metadata": {
@@ -80,14 +80,14 @@
 					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
 					"user = \"alex\""
 				],
-				"execution_count": 1
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 3
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -119,11 +119,13 @@
 					"\n",
 					"SHOW DATABASES;"
 				],
-				"execution_count": 4
+				"execution_count": 1
 			},
 			{
 				"cell_type": "code",
 				"source": [
+					"%s%sql\n",
+					"CREATE DATABASE hive LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/hive';\n",
 					""
 				],
 				"execution_count": null
