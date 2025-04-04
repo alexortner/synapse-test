@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "7e6fef1c-934a-431a-892f-3a03aaa27919"
+				"spark.autotune.trackingId": "42a8a37a-5430-4984-983c-034951a8d2cb"
 			}
 		},
 		"metadata": {
@@ -57,14 +57,14 @@
 					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
 					"user = \"alex\""
 				],
-				"execution_count": 1
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 4
+				"execution_count": 3
 			},
 			{
 				"cell_type": "markdown",
@@ -105,7 +105,7 @@
 					"%%sql\n",
 					"SHOW CATALOGS;"
 				],
-				"execution_count": 10
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",

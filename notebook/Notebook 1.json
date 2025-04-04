@@ -3,6 +3,10 @@
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "Sparkpool01",
+			"type": "BigDataPoolReference"
+		},
 		"sessionProperties": {
 			"driverMemory": "28g",
 			"driverCores": 4,
@@ -13,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "bba98395-885b-4996-ac51-70d3ab69f5b2"
+				"spark.autotune.trackingId": "06da2e9e-8c1c-475f-a081-f37ba0d54dd5"
 			}
 		},
 		"metadata": {
@@ -21,19 +25,46 @@
 			"enableDebugMode": false,
 			"kernelspec": {
 				"name": "synapse_pyspark",
-				"display_name": "python"
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+				"name": "Sparkpool01",
+				"type": "Spark",
+				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
 		"cells": [
 			{
 				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					}
+				},
 				"source": [
 					"%%pyspark\n",
 					"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
 				],
 				"execution_count": null
 			}

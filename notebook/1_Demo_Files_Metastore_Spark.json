@@ -18,7 +18,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "e3152304-7a4d-4d35-883c-d6e41d5d23dc"
+				"spark.autotune.trackingId": "4f990174-7ce0-4574-a597-b7ac3497cfd8"
 			}
 		},
 		"metadata": {
@@ -26,7 +26,7 @@
 			"enableDebugMode": false,
 			"kernelspec": {
 				"name": "synapse_pyspark",
-				"display_name": "python"
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "python"
@@ -55,14 +55,14 @@
 					"import pyspark.sql.functions as f\n",
 					"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\""
 				],
-				"execution_count": 2
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 3
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
