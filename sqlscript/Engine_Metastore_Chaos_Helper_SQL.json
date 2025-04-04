@@ -2,12 +2,12 @@
 	"name": "Engine_Metastore_Chaos_Helper_SQL",
 	"properties": {
 		"content": {
-			"query": "SELECT * FROM hive.dbo.juices_external;\n\nSELECT * FROM lake.dbo.juices_external;\n\n\nSELECT * FROM hive.dbo.juices_managed;\n\nSELECT * FROM lake.dbo.juices_managed2;\n\n\nUSE lake;\nSELECT * FROM INFORMATION_SCHEMA.COLUMNS\n\nUSE hive;\nSELECT * FROM INFORMATION_SCHEMA.TABLES;\n\nSELECT * FROM INFORMATION_SCHEMA.SCHEMATA\n",
+			"query": "-- Serverless SQL Engine allows only reading from files or Lake Database Tables\nSELECT * FROM hive.dbo.juices_external;\n\nSELECT * FROM lake.dbo.juices_external;\n\n\nSELECT * FROM hive.dbo.juices_managed;\n\nSELECT * FROM lake.dbo.juices_managed2;\n\n\nUSE lake;\nSELECT * FROM INFORMATION_SCHEMA.COLUMNS\n\nUSE hive;\nSELECT * FROM INFORMATION_SCHEMA.TABLES;\n\nSELECT * FROM INFORMATION_SCHEMA.SCHEMATA\n\n\n-- The following is not possible in Serverless SQL \n-- ------------------------------------------------------------------------------\n-- create managed tables in any Database (Lake Database, SQL Pool Database)\n-- create external tables in any Database (Lake Database, SQL Pool Database)\n-- register external tables in any Database (Lake Database, SQL Pool Database)\n-- write to storage \n-- drop tables",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "master",
+				"databaseName": "hive",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000
