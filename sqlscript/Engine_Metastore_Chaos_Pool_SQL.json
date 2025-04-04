@@ -1,0 +1,17 @@
+{
+	"name": "Engine_Metastore_Chaos_Pool_SQL",
+	"properties": {
+		"content": {
+			"query": "-- Pool SQL Engine can not access the metastore Lake Database\nSELECT * FROM hive.dbo.juices_external;\n\n\n\n-- The only way to get data from the Lake is by registering existing tables as external tables\n\n\n-- register external table\nCREATE EXTERNAL TABLE dbo.juices_external (\n    name nvarchar(60),\n    flavor nvarchar(60),\n    milliliters float,\n    refreshing bit\n\t)\n\tWITH (\n\tLOCATION = '/alex/lab/juices_hive_external',\n\tDATA_SOURCE = lhtDataSource,\n\tFILE_FORMAT = SynapseParquetFormat\n\t)\nGO\n\nSELECT * FROM dbo.juices_external;\n\n\n-- create new external table\nCREATE EXTERNAL TABLE dbo.juices_external_sql_pool\nWITH (\n    LOCATION = '/alex/lab/juices_hive_external_sql_pool',\n    DATA_SOURCE = lhtDataSource,\n    FILE_FORMAT = SynapseParquetFormat\n)\nAS\nSELECT *  FROM dbo.juices_external\n\nSELECT * FROM dbo.juices_external_sql_pool;\n\n\n\nCREATE TABLE dbo.juices_managed\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,         -- How the data are distributed over nodes (ROUND_ROBIN, HASH,REPLICATE)\n    CLUSTERED COLUMNSTORE INDEX         -- How the index is organised (CLUSTERED COLUMNSTORE, CLUSTERED INDEX, HEAP)\n)\nAS\nSELECT *  FROM dbo.juices_external\n\nSELECT * FROM dbo.juices_managed\n\n\nDROP TABLE dbo.juices_managed\nDROP EXTERNAL TABLE dbo.juices_external_sql_pool\nDROP EXTERNAL TABLE dbo.juices_external\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SQL Pool with Metatore",
+				"poolName": "SQL Pool with Metatore"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
