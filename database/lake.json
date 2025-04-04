@@ -1,0 +1,22 @@
+{
+	"name": "lake",
+	"properties": {
+		"Name": "lake",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://lht@lhtdata.dfs.core.windows.net/",
+			"Properties": {
+				"FormatType": "parquet",
+				"LinkedServiceName": "DataTest2"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
