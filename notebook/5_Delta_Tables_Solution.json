@@ -18,7 +18,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "ee0c46fe-f201-4d17-8f60-82776a547dfd"
+				"spark.autotune.trackingId": "3a8bd7dd-83b3-442f-9bb8-7c6cf2b0f42a"
 			}
 		},
 		"metadata": {
@@ -82,14 +82,14 @@
 					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
 					"user = \"alex\""
 				],
-				"execution_count": 3
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 2
+				"execution_count": 5
 			},
 			{
 				"cell_type": "markdown",
@@ -164,7 +164,32 @@
 					"df.show()\n",
 					"print(f\"Delta Table juices stored to {trusted}/{user}/lab/juices\")"
 				],
-				"execution_count": 30
+				"execution_count": 6
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# create example data\n",
+					"data = [\n",
+					"    (\"orange\", \"citrus\", 500.0, True),\n",
+					"    (\"apple\", \"sweet\", 1000.0, True),\n",
+					"    (\"beetroot\", \"earthy\", 42.5, False)\n",
+					"]\n",
+					"\n",
+					"columns = [\"name\", \"flavor\", \"milliliters\", \"refreshing\"]\n",
+					"\n",
+					"df = spark.createDataFrame(data, columns)\n",
+					"\n",
+					"\n",
+					"# write to user storage and register as external table\n",
+					"write=(df.write\n",
+					"    .saveAsTable(\"juices_managed\")\n",
+					")\n",
+					"\n",
+					"df.show()\n",
+					""
+				],
+				"execution_count": 7
 			},
 			{
 				"cell_type": "markdown",
