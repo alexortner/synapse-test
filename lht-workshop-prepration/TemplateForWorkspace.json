@@ -681,7 +681,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "e3152304-7a4d-4d35-883c-d6e41d5d23dc"
+						"spark.autotune.trackingId": "ae900329-afb6-474a-bc17-b00acf4265c0"
 					}
 				},
 				"metadata": {
@@ -689,7 +689,7 @@
 					"enableDebugMode": false,
 					"kernelspec": {
 						"name": "synapse_pyspark",
-						"display_name": "python"
+						"display_name": "Synapse PySpark"
 					},
 					"language_info": {
 						"name": "python"
@@ -706,27 +706,30 @@
 						"sparkVersion": "3.4",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"import pyspark.sql.functions as f\n",
 							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\""
 						],
 						"outputs": [],
-						"execution_count": 2
+						"execution_count": null
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"%run helpers"
 						],
 						"outputs": [],
-						"execution_count": 3
+						"execution_count": null
 					},
 					{
 						"cell_type": "markdown",
@@ -743,6 +746,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# Look on the storage\n",
 							"list_files_tree(f\"{bucket}\",0,0)"
@@ -942,6 +946,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# current tables in database\n",
 							"show_table_details(\"flight_data\")"
@@ -1029,6 +1034,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# current tables in Metastore\n",
 							"show_table_details(\"flight_data\")"
@@ -1038,6 +1044,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"#%%sql\n",
 							"#-- SELECT * FROM flight_data.airport_new_from_spark"
@@ -1047,6 +1054,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# Add ata to the empty created delta table\n",
 							"(df_from_file.write\n",
@@ -1062,6 +1070,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# show table\n",
 							"spark.sql(\"\"\"\n",
@@ -1094,6 +1103,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# Register it to the Lake Database metastore\n",
 							"(df_from_file.write\n",
@@ -1107,6 +1117,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# current tables in Metastore\n",
 							"show_table_details(\"flight_data\")\n",
@@ -1177,6 +1188,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_new_from_spark\")\n",
 							"show_table_details(\"flight_data\")\n",
@@ -1192,6 +1204,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_registered_from_spark\")\n",
 							"show_table_details(\"flight_data\")\n",
@@ -1223,6 +1236,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"spark.stop()"
 						],
@@ -1231,6 +1245,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# full clean clean up\n",
 							"\n",
@@ -3376,7 +3391,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "7e6fef1c-934a-431a-892f-3a03aaa27919"
+						"spark.autotune.trackingId": "42a8a37a-5430-4984-983c-034951a8d2cb"
 					}
 				},
 				"metadata": {
@@ -3416,7 +3431,7 @@
 							"user = \"alex\""
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 2
 					},
 					{
 						"cell_type": "code",
@@ -3424,7 +3439,7 @@
 							"%run helpers"
 						],
 						"outputs": [],
-						"execution_count": 4
+						"execution_count": 3
 					},
 					{
 						"cell_type": "markdown",
@@ -3466,7 +3481,7 @@
 							"SHOW CATALOGS;"
 						],
 						"outputs": [],
-						"execution_count": 10
+						"execution_count": null
 					},
 					{
 						"cell_type": "code",
@@ -3685,6 +3700,10 @@
 			"properties": {
 				"nbformat": 4,
 				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
 				"sessionProperties": {
 					"driverMemory": "28g",
 					"driverCores": 4,
@@ -3695,7 +3714,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "d88e8bba-fd1e-48f2-a886-1ad038c6d773"
+						"spark.autotune.trackingId": "06da2e9e-8c1c-475f-a081-f37ba0d54dd5"
 					}
 				},
 				"metadata": {
@@ -3703,20 +3722,46 @@
 					"enableDebugMode": false,
 					"kernelspec": {
 						"name": "synapse_pyspark",
-						"display_name": "python"
+						"display_name": "Synapse PySpark"
 					},
 					"language_info": {
 						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
+						"metadata": {
+							"microsoft": {
+								"language": "python"
+							}
+						},
 						"source": [
 							"%%pyspark\n",
 							"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							""
 						],
 						"outputs": [],
 						"execution_count": null
@@ -4076,349 +4121,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/UI_database')]",
-			"type": "Microsoft.Synapse/workspaces/databases",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"Ddls": [
-					{
-						"ActionType": "CREATE",
-						"OldEntity": null,
-						"NewEntity": {
-							"Name": "UI_database",
-							"EntityType": "DATABASE",
-							"Origin": {
-								"Type": "SPARK"
-							},
-							"Properties": {
-								"IsSyMSCDMDatabase": true
-							},
-							"Source": {
-								"Provider": "ADLS",
-								"Location": "abfss://lht@lhtdata.dfs.core.windows.net/",
-								"Properties": {
-									"FormatType": "parquet",
-									"LinkedServiceName": "DataTest2"
-								}
-							}
-						},
-						"Source": {
-							"Type": "SPARK"
-						}
-					},
-					{
-						"ActionType": "CREATE",
-						"OldEntity": null,
-						"NewEntity": {
-							"Name": "test_from_delta",
-							"EntityType": "TABLE",
-							"Namespace": {
-								"DatabaseName": "UI_database"
-							},
-							"Description": "",
-							"TableType": "EXTERNAL",
-							"Origin": {
-								"Type": "SPARK"
-							},
-							"StorageDescriptor": {
-								"Columns": [
-									{
-										"Name": "airport_id",
-										"OriginDataTypeName": {
-											"TypeName": "integer",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Properties": {
-												"HIVE_TYPE_STRING": "integer"
-											}
-										}
-									},
-									{
-										"Name": "iata",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "icao",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "name",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "address",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "website",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "bio",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "city_id",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "city_name",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "country_id",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "country_code",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "country_name",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "region_id",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "region_code",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "region_name",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "latitude",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "longitude",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "data_url",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "dap_hash",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "__insertTimestamp",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									},
-									{
-										"Name": "__loadTimestampCurated",
-										"OriginDataTypeName": {
-											"TypeName": "string",
-											"IsComplexType": false,
-											"IsNullable": true,
-											"Length": 8000,
-											"Properties": {
-												"HIVE_TYPE_STRING": "string"
-											}
-										}
-									}
-								],
-								"Format": {
-									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
-									"FormatType": "parquet",
-									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
-									"Properties": {
-										"path": "abfss://lht@lhtdata.dfs.core.windows.net/airport.delta",
-										"FormatTypeSetToDatabaseDefault": false
-									}
-								},
-								"Source": {
-									"Provider": "ADLS",
-									"Location": "abfss://lht@lhtdata.dfs.core.windows.net/airport.delta",
-									"Properties": {
-										"LinkedServiceName": "DataTest2",
-										"LocationSetToDatabaseDefault": false
-									}
-								},
-								"Properties": {
-									"textinputformat.record.delimiter": ",",
-									"compression": "",
-									"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
-								},
-								"Compressed": false,
-								"IsStoredAsSubdirectories": false
-							},
-							"Properties": {
-								"Description": "",
-								"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
-								"PrimaryKeys": "",
-								"spark.sql.sources.provider": "parquet"
-							},
-							"Retention": 0,
-							"Temporary": false,
-							"IsRewriteEnabled": false
-						},
-						"Source": {
-							"Type": "SPARK"
-						}
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/AlexSparkPool')]",
 			"type": "Microsoft.Synapse/workspaces/bigDataPools",
 			"apiVersion": "2019-06-01-preview",
@@ -4485,6 +4187,60 @@
 			},
 			"dependsOn": [],
 			"location": "westeurope"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"metadata": {
+					"language_info": {
+						"name": "python"
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"%%pyspark\n",
+							"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 3')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"metadata": {
+					"language_info": {
+						"name": "python"
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"%%pyspark\n",
+							"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
 		}
 	]
 }
