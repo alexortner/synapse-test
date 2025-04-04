@@ -1,0 +1,22 @@
+{
+	"name": "lakehouse",
+	"properties": {
+		"Name": "lakehouse",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://lht@lhtdata.dfs.core.windows.net/metastore_root",
+			"Properties": {
+				"FormatType": "parquet",
+				"LinkedServiceName": "DataTest2"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
