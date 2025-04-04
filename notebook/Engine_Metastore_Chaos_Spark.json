@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "b1c0c7ce-b04f-484f-b3cd-15802fdaf9c9"
+				"spark.autotune.trackingId": "649e162c-1cae-403e-81be-aa2cbe1dc75c"
 			}
 		},
 		"metadata": {
@@ -154,7 +154,7 @@
 					"\n",
 					"df.show()"
 				],
-				"execution_count": 14
+				"execution_count": 11
 			},
 			{
 				"cell_type": "code",
@@ -189,7 +189,7 @@
 					"    .saveAsTable(\"lake.juices_managed\")\n",
 					")"
 				],
-				"execution_count": 15
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",
