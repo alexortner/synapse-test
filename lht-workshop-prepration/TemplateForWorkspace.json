@@ -681,7 +681,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "ae900329-afb6-474a-bc17-b00acf4265c0"
+						"spark.autotune.trackingId": "8220b270-4ade-4b1d-93f0-643c6bc9fbe1"
 					}
 				},
 				"metadata": {
@@ -706,15 +706,13 @@
 						"sparkVersion": "3.4",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"import pyspark.sql.functions as f\n",
 							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\""
@@ -724,7 +722,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"%run helpers"
 						],
@@ -746,7 +743,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Look on the storage\n",
 							"list_files_tree(f\"{bucket}\",0,0)"
@@ -946,7 +942,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# current tables in database\n",
 							"show_table_details(\"flight_data\")"
@@ -1034,7 +1029,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# current tables in Metastore\n",
 							"show_table_details(\"flight_data\")"
@@ -1044,7 +1038,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#%%sql\n",
 							"#-- SELECT * FROM flight_data.airport_new_from_spark"
@@ -1054,7 +1047,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Add ata to the empty created delta table\n",
 							"(df_from_file.write\n",
@@ -1070,7 +1062,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# show table\n",
 							"spark.sql(\"\"\"\n",
@@ -1103,7 +1094,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Register it to the Lake Database metastore\n",
 							"(df_from_file.write\n",
@@ -1117,7 +1107,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# current tables in Metastore\n",
 							"show_table_details(\"flight_data\")\n",
@@ -1188,7 +1177,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_new_from_spark\")\n",
 							"show_table_details(\"flight_data\")\n",
@@ -1204,7 +1192,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"spark.sql(\"DROP TABLE IF EXISTS flight_data.airport_registered_from_spark\")\n",
 							"show_table_details(\"flight_data\")\n",
@@ -1236,7 +1223,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"spark.stop()"
 						],
@@ -1245,7 +1231,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# full clean clean up\n",
 							"\n",
@@ -3391,7 +3376,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "42a8a37a-5430-4984-983c-034951a8d2cb"
+						"spark.autotune.trackingId": "baa0f455-a82c-4795-a24a-8528acd398d3"
 					}
 				},
 				"metadata": {
@@ -3684,7 +3669,8 @@
 					{
 						"cell_type": "code",
 						"source": [
-							""
+							"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")\n",
+							"spark.sql(\"DROP DATABASE IF EXISTS lake CASCADE\")"
 						],
 						"outputs": [],
 						"execution_count": null
@@ -3760,6 +3746,149 @@
 					},
 					{
 						"cell_type": "code",
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/X_Demo_Metastore_Table_Types')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool01",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "f4662246-47ea-4136-a7b1-a36967de310f"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+						"name": "Sparkpool01",
+						"type": "Spark",
+						"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Demo working with Files and Metastores\n",
+							"\n",
+							"\n",
+							"1. Write and read to storage\n",
+							"2. Create metastore database\n",
+							"2. Create external table in metastore database\n",
+							"3. Create managed table in metastore database\n",
+							"4. Write and read from table\n",
+							"\n",
+							"![Engine Matrix](https://raw.githubusercontent.com/alexortner/teaching/master/synapse_metastore_engine_matrix.png)\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"# set parameters\n",
+							"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+							"currated = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+							"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+							"user = \"alex\""
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"%run helpers"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Create a Lake Database\n",
+							"First a database has to be created in the metastore\n",
+							"In Synapse this can be done via SQL Code or UI\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\n",
+							"SHOW CATALOGS;\n",
+							"\n",
+							"SHOW DATABASES;"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							""
 						],
@@ -4187,60 +4316,6 @@
 			},
 			"dependsOn": [],
 			"location": "westeurope"
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
-			"type": "Microsoft.Synapse/workspaces/notebooks",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"nbformat": 4,
-				"nbformat_minor": 2,
-				"metadata": {
-					"language_info": {
-						"name": "python"
-					}
-				},
-				"cells": [
-					{
-						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							"%%pyspark\n",
-							"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")"
-						],
-						"outputs": [],
-						"execution_count": null
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/Notebook 3')]",
-			"type": "Microsoft.Synapse/workspaces/notebooks",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"nbformat": 4,
-				"nbformat_minor": 2,
-				"metadata": {
-					"language_info": {
-						"name": "python"
-					}
-				},
-				"cells": [
-					{
-						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							"%%pyspark\n",
-							"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")"
-						],
-						"outputs": [],
-						"execution_count": null
-					}
-				]
-			},
-			"dependsOn": []
 		}
 	]
 }
