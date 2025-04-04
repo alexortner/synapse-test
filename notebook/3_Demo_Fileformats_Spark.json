@@ -1,0 +1,571 @@
+{
+	"name": "3_Demo_Fileformats_Spark",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "Sparkpool01",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "babcb095-50a4-4eb9-81b3-faa03ecc3a35"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+				"name": "Sparkpool01",
+				"type": "Spark",
+				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Tasks on File and Table Formats\n",
+					"\n",
+					"The following tasks aim to familiarize you with different file formats and help understand the structure of a Delta Lake.\n",
+					"\n",
+					"### CSV and JSON\n",
+					"\n",
+					"Traditional file formats for data processing.  \n",
+					"**Key features:** Simple structure, human-readable, row-based format.\n",
+					"\n",
+					"### Avro, Parquet\n",
+					"\n",
+					"Big Data-optimized formats for fast reading and writing of large datasets.  \n",
+					"**Key features:** Splittable, compressible, skippable, self-describing (with schema), supports schema evolution and enforcement, enables filter pushdown.\n",
+					"\n",
+					"### Delta, Iceberg, Hudi\n",
+					"\n",
+					"Advanced Big Data formats that bring ACID transactions and traceability to data lakes, similar to SQL databases.  \n",
+					"**Key features:** Extended metadata and specialized readers/writers, time travel, merge and update support, audit logging capabilities."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import pyspark.sql.functions as f\n",
+					"\n",
+					"# Path to storage account\n",
+					"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net\""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"%run helpers"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"ls(\"/file_formats\")"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Create some sample data"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Datensatz mit Kontoständen von 2 Personen jeweils zum Monatsanfang\n",
+					"account_data1 = [\n",
+					"    (1,\"alex\",\"2019-01-01\",1000),\n",
+					"    (2,\"alex\",\"2019-02-01\",1500),\n",
+					"    (3,\"alex\",\"2019-03-01\",1700),\n",
+					"    (4,\"maria\",\"2020-01-01\",5000)\n",
+					"    ]\n",
+					"\n",
+					"# Datensatz mit einem Update und einer neuen Zeile mit einer neuen Person\n",
+					"account_data2 = [\n",
+					"    (1,\"alex\",\"2019-03-01\",3300,\"\"),\n",
+					"    (2,\"peter\",\"2021-01-01\",100,\"\")\n",
+					"    ]\n",
+					"\n",
+					"# Datensatz mit neuer Zeile die eine neuen Person und eine weitere Spalte enthällt\n",
+					"account_data3 = [\n",
+					"    (1,\"otto\",\"2019-10-01\",4444,\"neue Spalte 1\")\n",
+					"]\n",
+					"\n",
+					"schema = [\"id\",\"account\",\"dt_transaction\",\"balance\"]\n",
+					"schema3 = [\"id\",\"account\",\"dt_transaction\",\"balance\",\"new\"]\n",
+					"\n",
+					"df1 = spark.createDataFrame(data=account_data1, schema = schema).withColumn(\"dt_transaction\",f.col(\"dt_transaction\").cast(\"date\")).repartition(3)\n",
+					"df2 = spark.createDataFrame(data=account_data2, schema = schema3).withColumn(\"dt_transaction\",f.col(\"dt_transaction\").cast(\"date\")).repartition(2)\n",
+					"df3 = spark.createDataFrame(data=account_data3, schema = schema3).withColumn(\"dt_transaction\",f.col(\"dt_transaction\").cast(\"date\")).repartition(1)\n",
+					"\n",
+					"\n",
+					"\n",
+					"print(\"Container/Bucket:\", bucket)\n",
+					"print(\"++ create new dataframe and show schema and data\")\n",
+					"print(\"################################################\")\n",
+					"print(\"++ start data\")\n",
+					"df1.show(truncate=False)\n",
+					"print(\"++ update row and add row\")\n",
+					"df2.show(truncate=False)\n",
+					"print(\"++ add new column\")\n",
+					"df3.show(truncate=False)\n",
+					"df1.printSchema()"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## CSV Format\n",
+					"simple human readeable text format without any schema properties"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Schreibe Datenset 1 als CSV Datei\n",
+					"write_csv=(df1\n",
+					"           .write\n",
+					"           .format(\"csv\")\n",
+					"           .mode(\"overwrite\") # append\n",
+					"           .save(f\"{bucket}/file_formats/csv\")\n",
+					"          )"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# check was für Dateien geschrieben wurden\n",
+					"ls(\"/file_formats/csv\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# checke den Inhalt der Dateien\n",
+					"cat(\"/file_formats/csv\",3)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# lese alles wieder ein um zu sprüfen ob Spaltenamen und Typ erhalten wurden\n",
+					"read_csv=spark.read.format(\"csv\").load(f\"{bucket}/file_formats/csv\")\n",
+					"\n",
+					"read_csv.printSchema()\n",
+					"read_csv.show()"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Parquet Format\n",
+					"- Column format\n",
+					"- Logical partitioning using path prefixes (directories)\n",
+					"- Metadata in the footer"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Schreibe Datenset 1 als PARQUET Datei\n",
+					"write_parquet=(df1\n",
+					"    .write\n",
+					"    # Partitioniere fachlich über die Spalte account\n",
+					"    .partitionBy(\"account\")\n",
+					"    .format(\"parquet\")\n",
+					"    .mode(\"overwrite\")\n",
+					"    .save(f\"{bucket}/file_formats/parquet\")\n",
+					"    )"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# check was für Dateien geschrieben wurden\n",
+					"ls(\"/file_formats/parquet\",\"p\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# check den Inhalt der Dateien und finde den die Metadatan\n",
+					"cat(\"/file_formats/parquet\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Parquet mit Partitionsfilter laden\n",
+					"read_parquet=(spark\n",
+					"              .read.format(\"parquet\")\n",
+					"              .load(f\"{bucket}/file_formats/parquet\")\n",
+					"             )\n",
+					"\n",
+					"read_parquet.printSchema()\n",
+					"read_parquet.show()"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Parquet mit Partitionsfilter laden\n",
+					"read_parquet=(spark\n",
+					"              .read.format(\"parquet\")\n",
+					"              .load(f\"{bucket}/file_formats/parquet\")\n",
+					"              # Filter auf die Spalte über die partitioniert wurde\n",
+					"              .filter(f.col(\"account\")==\"alex\")\n",
+					"             )\n",
+					"\n",
+					"# Parquet mit normalem Filter laden\n",
+					"read_parquet2=(spark\n",
+					"              .read.format(\"parquet\")\n",
+					"              .load(f\"{bucket}/file_formats/parquet\")\n",
+					"              # Filter auf die Spalte über eine normale Spalte\n",
+					"              .filter(f.col(\"balance\")>1500)\n",
+					"              .select(\"balance\")\n",
+					"             )\n",
+					"\n",
+					"# Parquet mit normalem Filter laden\n",
+					"read_parquet3=(spark\n",
+					"              .read.format(\"parquet\")\n",
+					"              .load(f\"{bucket}/file_formats/parquet\")\n",
+					"              # Filter auf die Spalte über die partitioniert wurde\n",
+					"              .filter(f.col(\"account\")==\"alex\")\n",
+					"              # Filter auf die Spalte über eine normale Spalte\n",
+					"              .filter(f.col(\"balance\")>1500)\n",
+					"              .select(\"account\",\"balance\")\n",
+					"             )\n",
+					"\n",
+					"# Anzeigen des physischen Execution Plans um zu sehen welche Filter ins Dateisystem bzw. in die Parquet Datei gepusht werden\n",
+					"print(\"Partition Filter\")\n",
+					"print(\"#######################\")\n",
+					"read_parquet.explain(\"simple\")\n",
+					"print(\"Pushdow Filter\")\n",
+					"print(\"#######################\")\n",
+					"read_parquet2.explain(\"simple\")\n",
+					"print(\"All Filter\")\n",
+					"print(\"#######################\")\n",
+					"read_parquet3.explain(\"simple\")"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Delta Table Format\n",
+					"- underlying format column Parqueet format\n",
+					"- Additional log metadata as JSON in a separate subdirectory"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Schreibe die Daten df1 als Delta Datei in den Pfad bucket/delta\n",
+					"write_delta=(df1\n",
+					"    .write\n",
+					"    .format(\"delta\")\n",
+					"    .option(\"overwriteSchema\", \"true\")\n",
+					"    .mode(\"overwrite\") \n",
+					"    .save(f\"{bucket}/file_formats/delta\")\n",
+					")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# check was für Dateien geschrieben wurden\n",
+					"ls(\"/file_formats/delta\",\"p\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# check was für Dateien in den Metadaten Ordner geschrieben wurden\n",
+					"ls(\"/file_formats/delta/_delta_log\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# lese alles wieder ein um zu sprüfen ob Spaltenamen und Typ hier erhalten wurden\n",
+					"read_delta=spark.read.format(\"delta\").load(f\"{bucket}/file_formats/delta\")\n",
+					"read_delta.printSchema()\n",
+					"read_delta.show()"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df3.show()"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Schreibe Zeile mit zusätzlicher Spalte dazu (Schema Evolution)\n",
+					"write_delta=(df3\n",
+					"    .write\n",
+					"    .format(\"delta\")\n",
+					"    # Bei Delta kann bein Schreiben gesetzt werden ob die Tabelle erweitert werden soll oder nicht, Default ist false. \n",
+					"    # Führe den Code zuerst ohne diese Option aus und schaue das Ergebnis an, dann kommentiere die Option mit true ein\n",
+					"    .option(\"mergeSchema\", \"true\")\n",
+					"    .mode(\"append\") # append\n",
+					"    .save(f\"{bucket}/file_formats/delta\")\n",
+					")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# lese alles wieder ein und Prüfe ob die Tabelle um die neue Spalte erweitert wurde\n",
+					"read_delta=spark.read.format(\"delta\").load(f\"{bucket}/file_formats/delta\")\n",
+					"read_delta.show()"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"cat(\"/delta/_delta_log\",2)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# erzeuge ein Delta Tabellen Objekt\n",
+					"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/file_formats/delta\")\n",
+					"\n",
+					"# Zeige die Versionshistory der DeltaTable (wird aus den Log Dateien erzeugt)\n",
+					"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Rolle den Datensatz auf den alten Stand mit 4 Spalten zurück\n",
+					"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/file_formats/delta\")\n",
+					"\n",
+					"print(\"++ Bestehender Datensatz  vor rollback\")\n",
+					"deltaTable.toDF().show()\n",
+					"\n",
+					"# Verwende hierzu die DeltaTable Funktion restoreToVersion(0) oder restoreToTimestamp(\"yyyy-mm-dd\")\n",
+					"# Hier sollte ein Fehler kommen, weil sich das Schea geändert hat\n",
+					"deltaTable.restoreToVersion(0)\n",
+					"\n",
+					"\n",
+					"print(\"++ Bestehender Datensatz  nach rollback\")\n",
+					"deltaTable.toDF().show()\n",
+					"\n",
+					"# Fails and shows Schema enforcement"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Demonstrationslösung um einen rollback auf ein falsches Schema zu machen\n",
+					"(spark\n",
+					"    .read\n",
+					"    .format(\"delta\")\n",
+					"    .option(\"versionAsOf\", \"1\")\n",
+					"    .load(f\"{bucket}/file_formats/delta\")\n",
+					"    .write\n",
+					"    .format(\"delta\")\n",
+					"    .option(\"mergeSchema\", \"true\")\n",
+					"    .mode(\"overwrite\") \n",
+					"    .save(f\"{bucket}/file_formats/delta\")\n",
+					")\n",
+					"\n",
+					"read_delta=spark.read.format(\"delta\").load(f\"{bucket}/file_formats/delta\")\n",
+					"read_delta.show()"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# check was für Dateien in den Metadaten Ordner geschrieben wurden\n",
+					"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### Delta Merge with Pyspark Dataframes"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# !!! Important schema and columns for old and new dataframe have to be the same\n",
+					"deltaTable = DeltaTable.forPath(spark, f\"{bucket}/file_formats/delta\")\n",
+					"\n",
+					"\n",
+					"print(\"++ Bestehender Datensatz\")\n",
+					"deltaTable.toDF().show()\n",
+					"\n",
+					"print(\"++ Datensatz der im Folgenden auf bestehende Daten upserted/merged werden soll\")\n",
+					"df2.show()\n",
+					"\n",
+					"# Beispiel eines Upserts unter Verwendung der merge Funktion (es gibt auch eine update() oder delete() Funktion)\n",
+					"dt3=(deltaTable.alias(\"oldData\")\n",
+					"      .merge(df2.alias(\"newData\"),\n",
+					"            \"oldData.account = newData.account AND oldData.dt_transaction = newData.dt_transaction\")\n",
+					"            .whenMatchedUpdateAll()\n",
+					"            .whenNotMatchedInsertAll()\n",
+					"      .execute()\n",
+					"    )\n",
+					"\n",
+					"deltaTable.toDF().sort(f.col(\"account\"),f.col(\"dt_transaction\")).show()\n",
+					"\n",
+					"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### Delta Merge with Spark SQL"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# register dataframe as SQL table \n",
+					"df2.createOrReplaceTempView(\"newData\")\n",
+					"deltaTable.toDF().createOrReplaceTempView(\"oldData\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"MERGE INTO oldData\n",
+					"USING newData\n",
+					"ON oldData.account = newData.account AND oldData.dt_transaction = newData.dt_transaction\n",
+					"WHEN MATCHED THEN UPDATE SET *\n",
+					"WHEN NOT MATCHED THEN INSERT *"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"DESCRIBE HISTORY delta.`abfss://lht@lhtdata.dfs.core.windows.net/file_formats/delta`"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"spark.stop()"
+				],
+				"execution_count": 44
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				]
+			}
+		]
+	}
+}

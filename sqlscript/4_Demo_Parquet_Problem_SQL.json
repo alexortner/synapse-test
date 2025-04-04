@@ -1,0 +1,17 @@
+{
+	"name": "4_Demo_Parquet_Problem_SQL",
+	"properties": {
+		"content": {
+			"query": "\n-- Run before updating from Spark\nSELECT TOP 5 country_code, country_name,count(*) as country_counts FROM [Metastore_on_Files].[dbo].[airport] group by country_code, country_name order by country_counts desc\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Metastore_on_Files",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

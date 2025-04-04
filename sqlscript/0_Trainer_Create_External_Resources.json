@@ -1,0 +1,17 @@
+{
+	"name": "0_Trainer_Create_External_Resources",
+	"properties": {
+		"content": {
+			"query": "-- Create a format Definition if not already\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n-- Create an external data sorce\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'lht_lhtdata_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [lht_lhtdata_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION = 'abfss://lht@lhtdata.dfs.core.windows.net' \n\t)\nGO\n\n\nCREATE EXTERNAL DATA SOURCE lhtDataSource\nWITH (\n    TYPE = HADOOP,\n    LOCATION = 'abfss://lht@lhtdata.dfs.core.windows.net/'\n);\nGO\n\n-- Create the external file format using Parquet\nCREATE EXTERNAL FILE FORMAT SynapseParquetFormat\nWITH (\n    FORMAT_TYPE = PARQUET\n);\nGO\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "AlexSQLPool",
+				"poolName": "AlexSQLPool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

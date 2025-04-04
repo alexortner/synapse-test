@@ -1,0 +1,18 @@
+{
+	"name": "1_Demo_Files_Metastore_SQL",
+	"properties": {
+		"description": "Demo on how the Table abstraction works",
+		"content": {
+			"query": "-- This runs in Spark or a Serverless SQL Engine that can use the Lake Database\n\n-- Prerequisite: Files have to be available in Storage Accoun Container in Delta Format\n-- Read data from files stored in Storage Account\nSELECT\n    TOP 5 name,city_name, country_name, iata, icao \nFROM\n    OPENROWSET(\n        BULK 'https://lhtdata.dfs.core.windows.net/lht/airport.delta/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nWHERE country_code = 'DE'\nORDER BY city_name\n\n\n-- Prerequisite: Open the Metastore in the Lake database and click add table from data lake\n-- Read data from table defined in Metastore\nSELECT\n    TOP 5 name,city_name, country_name, iata, icao \nFROM \n    flight_data.dbo.airport_registered_from_spark\nWHERE country_code = 'DE'\nORDER BY city_name\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "default",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

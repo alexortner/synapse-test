@@ -1,0 +1,363 @@
+{
+	"name": "5_Excercise_Solution_Delta_Files",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "Sparkpool01",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "fea1477c-bdf9-4562-9a37-83fe2a11e80b"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+				"name": "Sparkpool01",
+				"type": "Spark",
+				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Exercise working with Delta files\r\n",
+					"\r\n",
+					"1. Read FR24 delta file from currated container into dataframe\r\n",
+					"2. Write FR24 as delta file into trusted/user folder\r\n",
+					"3. query data via spark dataframes\r\n",
+					"4. check delta history via spark dataframes\r\n",
+					"5. register as external table\r\n",
+					"6. query data via sql\r\n",
+					"7. query data history via sql\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import pyspark.sql.functions as f\r\n",
+					"currated = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\r\n",
+					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\r\n",
+					"user = \"alex\""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"%run helpers"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 1. Read FR24 Data in Dataframe\r\n",
+					"\r\n",
+					"Read Flight Radar Data (fr24) from  `currated` into user bronze layer `trusted/username/bronze/fr24`"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# find the path on the storage\r\n",
+					"list_files_tree(currated)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Exercise\r\n",
+					"df_fr24 = (spark\r\n",
+					"    .read\r\n",
+					"    # file format\r\n",
+					"    .format('<FILE FORMAT>')\r\n",
+					"    # path\r\n",
+					"    .load(f'{bucket}/<FILE DIRECTORY>')\r\n",
+					")\r\n",
+					"\r\n",
+					"# show schema\r\n",
+					"df_fr24.printSchema()\r\n",
+					"\r\n",
+					"# show dataframe\r\n",
+					"display(df_fr24.limit(10))"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": true,
+						"outputs_hidden": true
+					},
+					"collapsed": false,
+					"tags": [
+						"parameters"
+					]
+				},
+				"source": [
+					"# Solution\r\n",
+					"df_fr24 = (spark\r\n",
+					".read\r\n",
+					"# file format\r\n",
+					".format('delta')\r\n",
+					"# path\r\n",
+					".load(f'{currated}/fr24.delta')\r\n",
+					")\r\n",
+					"\r\n",
+					"# show schema\r\n",
+					"df_fr24.printSchema()\r\n",
+					"\r\n",
+					"# show dataframe\r\n",
+					"display(df_fr24.limit(10))"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 2. Write data in user folder as Delta file\r\n",
+					"write into your own user folder into the bronze layer\r\n",
+					"\r\n",
+					"`storage/username/bronze/fr24.delta`"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Exercise\r\n",
+					"write=(df_fr24\r\n",
+					"    .write\r\n",
+					"    .format(\"<FILE FORMAT>\")\r\n",
+					"    .mode(\"overwrite\") \r\n",
+					"    .save(f\"{trusted}/{user}/<ADD BRONZE FOLDER>\")\r\n",
+					")\r\n",
+					"\r\n",
+					"# check the storage\r\n",
+					"list_files_tree(f\"{bucket}/{user}/\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"outputs_hidden": true,
+						"source_hidden": true
+					}
+				},
+				"source": [
+					"# Solution\r\n",
+					"write=(df_fr24\r\n",
+					"    .write\r\n",
+					"    .format(\"delta\")\r\n",
+					"    .mode(\"overwrite\") \r\n",
+					"    .save(f\"{trusted}/{user}/bronze/fr24.delta\")\r\n",
+					")\r\n",
+					"\r\n",
+					"# check the storage\r\n",
+					"list_files_tree(f\"{trusted}/{user}/\")"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 3. Check Delta history\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# Creata a DeltaTable Object\r\n",
+					"deltaTable = DeltaTable.forPath(spark, f\"{trusted}/{user}/bronze/fr24.delta\")\r\n",
+					"\r\n",
+					"# show some history metrics\r\n",
+					"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 4. Use Delta ACID API to delete some rows from the dataset\r\n",
+					"\r\n",
+					"Delete all rows where the columns `operator` IS NULL.   \r\n",
+					"Check the documentation https://docs.delta.io/latest/delta-update.html"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# count rows where operator is null \r\n",
+					"(deltaTable\r\n",
+					"    .toDF()\r\n",
+					"    .where(f.col(\"operator\").isNull())\r\n",
+					"    .count()\r\n",
+					")"
+				],
+				"execution_count": 33
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Exercise\r\n",
+					"# delete all rows where operator IS NULL using the correct delta function\r\n",
+					"<ADD CORRECT CODE>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": true
+					}
+				},
+				"source": [
+					"# Solution\r\n",
+					"# delete all rows where operator IS NULL\r\n",
+					"deltaTable.delete(\"operator IS NULL\")"
+				],
+				"execution_count": 22
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Exercise\r\n",
+					"# check history again to check if the delete worked\r\n",
+					"deltaTable.<ADD CORRECT CODE>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false
+					},
+					"collapsed": false
+				},
+				"source": [
+					"# Solution\r\n",
+					"# check history again\r\n",
+					"(deltaTable\r\n",
+					"    .history()\r\n",
+					"    .select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\")\r\n",
+					").show(truncate=False)"
+				],
+				"execution_count": 34
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Exercise\r\n",
+					"# check rows where corecctly removed\r\n",
+					"\r\n",
+					"<ADD CODE>"
+				],
+				"execution_count": 28
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Solution\r\n",
+					"# Role back to version with null values\r\n",
+					"deltaTable.restoreToVersion(1)"
+				],
+				"execution_count": 37
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"\r\n",
+					"# Solution\r\n",
+					"# check history again\r\n",
+					"(deltaTable\r\n",
+					"    .history()\r\n",
+					"    .select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\")\r\n",
+					").show(truncate=False)\r\n",
+					"\r\n",
+					"\r\n",
+					"# count rows where operator is null \r\n",
+					"rows_null = (deltaTable\r\n",
+					"    .toDF()\r\n",
+					"    .where(f.col(\"operator\").isNull())\r\n",
+					"    .count()\r\n",
+					")\r\n",
+					"\r\n",
+					"print(\"Rows with Null value:\", rows_null)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,805 @@
+{
+	"name": "5_Delta_Tables_Solution",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "Sparkpool01",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "3215308c-f20d-4cd9-b3ee-9a2a3f13da94"
+			}
+		},
+		"metadata": {
+			"saveOutput": false,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+				"name": "Sparkpool01",
+				"type": "Spark",
+				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Working with Files, Catalog & Delta Tables Lab\n",
+					"This notebook provides a hands-on review of some of the features that the Delta File format brings to a Lakehouse\n",
+					"\n",
+					"Learning Objectives\n",
+					"By the end of this lab, you should be able to:\n",
+					"\n",
+					"- Create and Query Delta Tables\n",
+					"- Review table history\n",
+					"- Query previous table versions and rollback a table to a specific version\n",
+					"\n",
+					"\n",
+					"In the following we are using SparkSQL in varios notations "
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# set parameters\n",
+					"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+					"currated = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+					"user = \"alex\""
+				],
+				"execution_count": 29
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"%run helpers"
+				],
+				"execution_count": 43
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Data Access\n",
+					"\n",
+					"Spark can access data directly from file or via a catalog table registration\n",
+					"\n",
+					"1. DataFrame API read from Delta File\n",
+					"````\n",
+					"df = spark.read.format(\"delta\").load(\"/path/to/data\")\n",
+					"display(df)\n",
+					"````\n",
+					"2. DataFrame API read from Table\n",
+					"```\n",
+					"df = spark.table(\"database.table\")\n",
+					"display(df)\n",
+					"```\n",
+					"\n",
+					"3. SparkSQL API read from Table\n",
+					"```\n",
+					"SELECT * FROM database.table\n",
+					"````\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# create example data\n",
+					"data = [\n",
+					"    (\"orange\", \"citrus\", 500.0, True),\n",
+					"    (\"apple\", \"sweet\", 1000.0, True),\n",
+					"    (\"beetroot\", \"earthy\", 42.5, False)\n",
+					"]\n",
+					"\n",
+					"columns = [\"name\", \"flavor\", \"milliliters\", \"refreshing\"]\n",
+					"\n",
+					"df = spark.createDataFrame(data, columns)\n",
+					"\n",
+					"\n",
+					"# write to user storage and register as external table\n",
+					"write=(df.write\n",
+					"    # define underlying format\n",
+					"    .format(\"delta\")\n",
+					"    # set path to storage location\n",
+					"    .option(\"path\", f\"{trusted}/{user}/lab/juices\")\n",
+					"    # register as table\n",
+					"    .saveAsTable(\"juices\")\n",
+					")\n",
+					"\n",
+					"df.show()\n",
+					"print(f\"Delta Table juices stored to {trusted}/{user}/lab/juices\")"
+				],
+				"execution_count": 30
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Investigate the files and tables\n",
+					"\n",
+					"You created a Delta table using saveAsTable(...) with an explicit path. Spark wrote the Delta file to the Path and automatically registers this table in the metastore database"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# TASK: how much Parquet files were writen for this delta table?\n",
+					"\n",
+					"number_of_files=4\n",
+					"\n",
+					"check_5_files(number_of_files,  f\"{trusted}/{user}/lab/juices\")"
+				],
+				"execution_count": 31
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# TASK: in which database was the table registered?\n",
+					"\n",
+					"database_name=\"default\"\n",
+					"\n",
+					"check_5_database(database_name,\"juices\")"
+				],
+				"execution_count": 44
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Read data in different ways\n",
+					"\n",
+					"You created a Delta table using saveAsTable(...) with an explicit path. Spark wrote the Delta file to the Path and automatically registers this table in a catalog."
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# read the delta file directly from the path using pyspark\n",
+					"\n",
+					"df_pyspark_file = spark.read.format(\"delta\").load(f\"{trusted}/{user}/lab/juices\")\n",
+					"\n",
+					"display(df_pyspark_file)"
+				],
+				"execution_count": 45
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# use Pyspark from table \n",
+					"\n",
+					"df_pyspark_table = spark.table(\"juices\")\n",
+					"\n",
+					"display(df_pyspark_table)"
+				],
+				"execution_count": 46
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Coding styles\n",
+					"Working in Spark Notebooks supports three different coding styles that translate to the same Spark statement.\n",
+					"For example reading from a table from the metastore\n",
+					"\n",
+					"1. DataFrame API (PySpark/Scala/SQL)\n",
+					"```\n",
+					"df = spark.table(\"cars\")\n",
+					"filtered = df.filter(df[\"horsepower\"] > 100)\n",
+					"filtered.show()\n",
+					"\n",
+					"# or\n",
+					"\n",
+					"(spark\n",
+					"  .table(\"cars\")\n",
+					"  .filter(df[\"horsepower\"] > 100)\n",
+					").show()\n",
+					"\n",
+					"````\n",
+					"\n",
+					"2. SparkSQL API (SQL wrapped in Pyspark)\n",
+					"```\n",
+					"result = spark.sql(\"\"\"\n",
+					"  SELECT *\n",
+					"  FROM cars \n",
+					"  WHERE horsepower > 100 \n",
+					"\"\"\")\n",
+					"result.show()\n",
+					"```\n",
+					"\n",
+					"3. PlainSQL (via cell magic)\n",
+					"```\n",
+					"%%sql\n",
+					"SELECT *\n",
+					"FROM cars \n",
+					"WHERE horsepower > 100 \n",
+					"```\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Solve the filter task with all three coding styles\n",
+					"\n",
+					"Task: Filter the juices where `refreshing=true`"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## "
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# filter with DataFrame API\n",
+					"result = spark.table(\"juices\").where(f.col(\"refreshing\")==True)\n",
+					"\n",
+					"display(result)\n",
+					""
+				],
+				"execution_count": 47
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# Filter with SparkSQL API\n",
+					"result = spark.sql(\"\"\"\n",
+					"  SELECT *\n",
+					"  FROM juices \n",
+					"  WHERE refreshing = True\n",
+					"\"\"\")\n",
+					"\n",
+					"display(result)"
+				],
+				"execution_count": 48
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"-- Filter with PlainSQL\n",
+					"SELECT *\n",
+					"FROM juices \n",
+					"WHERE refreshing = True"
+				],
+				"execution_count": 49
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Delta File History\n",
+					"\n",
+					"Docu: https://docs.delta.io/latest/quick-start.html\n",
+					"\n",
+					"The cell below creates a new delta table registered as external table in the database and runs several operations on it (INSERT, DELETE, MERGE)\n",
+					"\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# in case the script did already run once \n",
+					"# 1. Drop table from metastore\n",
+					"spark.sql(\"DROP TABLE IF EXISTS cars\")\n",
+					"# 2. Remove files from the associated Delta path\n",
+					"safe_delete_path(f\"{trusted}/{user}/lab/cars\")\n",
+					"\n",
+					"\n",
+					"# 1. Version of Delta Table: create a external delta table\n",
+					"spark.sql(f\"\"\"\n",
+					"CREATE TABLE cars\n",
+					"(\n",
+					"  model STRING,\n",
+					"  company STRING,\n",
+					"  horsepower FLOAT,\n",
+					"  electric BOOLEAN\n",
+					")\n",
+					"USING DELTA\n",
+					"LOCATION '{trusted}/{user}/lab/cars'\n",
+					"\"\"\")\n",
+					"\n",
+					"# 2. Version of Delta Table: add 3 rows\n",
+					"spark.sql(\"\"\"\n",
+					"INSERT INTO cars VALUES\n",
+					"(\"Model 3\", \"Tesla\", 283, false),\n",
+					"(\"Golf\", \"Volkswagen\", 110, false),\n",
+					"(\"C-Class\", \"Mercedes-Benz\", 204, false)\n",
+					"\"\"\")\n",
+					"\n",
+					"# 3. Version of Delta Table: add another 3 rows\n",
+					"spark.sql(\"\"\"\n",
+					"INSERT INTO cars VALUES\n",
+					"(\"A3\", \"Audi\", 150, false),\n",
+					"(\"Zoe\", \"Renault\", 100, true),\n",
+					"(\"320i\", \"BMW\", 184, false),\n",
+					"(\"Alex\", \"Ortner\", 1000, false)\n",
+					"\"\"\")\n",
+					"\n",
+					"# 4. Version of Delta Table: update the row of the Tesla Model 3\n",
+					"spark.sql(\"\"\"\n",
+					"UPDATE cars\n",
+					"SET electric = true\n",
+					"WHERE model = \"Model 3\" and company = \"Tesla\"\n",
+					"\"\"\").show()\n",
+					"\n",
+					"# 5. Version of Delta Table: optimize the table to reduce small files\n",
+					"spark.sql(\"OPTIMIZE cars\")\n",
+					"\n",
+					"# 6. Version of Delta Table: update the row of the Audi\n",
+					"spark.sql(\"\"\"\n",
+					"UPDATE cars\n",
+					"SET horsepower = 400\n",
+					"WHERE model = 'A3'\n",
+					"\"\"\").show()\n",
+					"\n",
+					"# 7. Version of Delta Table: delete wrong entry Alex\n",
+					"spark.sql(\"\"\"\n",
+					"DELETE FROM cars\n",
+					"WHERE model = 'Alex'\n",
+					"\"\"\").show()\n",
+					"\n",
+					"\n",
+					"\n",
+					"# create a new temp table\n",
+					"spark.sql(\"\"\"\n",
+					"CREATE OR REPLACE TEMP VIEW new_cars(model, company, horsepower, electric) AS VALUES\n",
+					"('Model 3', 'Tesla', 200, true),\n",
+					"('320i', 'BMW', 100, true),\n",
+					"('Taycan', 'Porsche', 616, true),\n",
+					"('Punto', 'Fiat', 35, false)\n",
+					"\"\"\")\n",
+					"\n",
+					"# 8. Version of Delta Table: merge the new temp table into the existing delta table\n",
+					"spark.sql(\"\"\"\n",
+					"MERGE INTO cars a\n",
+					"    USING new_cars b\n",
+					"    ON a.model = b.model AND a.company = b.company\n",
+					"    WHEN MATCHED THEN\n",
+					"        UPDATE SET horsepower = a.horsepower + b.horsepower\n",
+					"    WHEN NOT MATCHED AND b.electric = true THEN\n",
+					"        INSERT *\n",
+					"\"\"\").show()\n",
+					"\n",
+					""
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Review the Table History\n",
+					"Delta Lake's transaction log stores information about each transaction that modifies a table's contents or settings.\n",
+					"\n",
+					"Review the history of the cars table below."
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"DESCRIBE HISTORY cars"
+				],
+				"execution_count": 15
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"If all the previous operations were completed as described, you should see **8 versions** of the table  \n",
+					"(**NOTE:** Delta Lake versioning starts with `0`, so the max version number will be `7`).\n",
+					"\n",
+					"---\n",
+					"\n",
+					"The operations should be as follows:\n",
+					"\n",
+					"| Version | Operation   |\n",
+					"|---------|-------------|\n",
+					"| 0       | CREATE TABLE |\n",
+					"| 1       | WRITE        |\n",
+					"| 2       | WRITE        |\n",
+					"| 3       | UPDATE       |\n",
+					"| 4       | OPTIMIZE     |\n",
+					"| 5       | UPDATE       |\n",
+					"| 6       | DELETE       |\n",
+					"| 7       | MERGE        |\n",
+					"\n",
+					"---\n",
+					"\n",
+					"- The `operationParameters` column will let you review **predicates used** for updates, deletes, and merges.  \n",
+					"- The `operationMetrics` column indicates **how many rows and files** were added in each operation.\n",
+					"- The `version` column designates the state of a table *once a given transaction completes*.  \n",
+					"- The `readVersion` column indicates the version of the table an operation **executed against**.  \n",
+					"- In this simple demo (with no concurrent transactions), this relationship should always **increment by 1**.\n",
+					"\n",
+					"---\n",
+					"> **TASK:**\n",
+					"> - Spend some time reviewing the **Delta Lake history** to understand which table version matches with a given transaction.   \n",
+					"> - Use the DataFrame API to select some relevant columns and split up the nested JSONS\n",
+					">\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Creata a Python DeltaTable Object\n",
+					"deltaTable = DeltaTable.forName(spark, \"cars\")\n",
+					"\n",
+					"\n",
+					"# check the schema to see all available fields\n",
+					"deltaTable.history().printSchema()\n",
+					"\n",
+					"# show some history metrics\n",
+					"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\").show(truncate=False)\n",
+					""
+				],
+				"execution_count": 16
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Query a Specific Version\n",
+					"After reviewing the table history, you decide you want to view the state of your table after your very first data was inserted.\n",
+					"\n",
+					"you can use SQL Style on the table abstraction\n",
+					"```\n",
+					"SELECT * FROM my_table VERSION AS OF 10\n",
+					"````\n",
+					"\n",
+					"or DataFrame Style on the table abstraction\n",
+					"```\n",
+					"df = (spark.read.format(\"delta\")\n",
+					"    .option(\"versionAsOf\", 5)\n",
+					"    .table(\"my_table\")\n",
+					"    )\n",
+					"display(df)\n",
+					"````\n",
+					"\n",
+					"or DataFrame Style on the Delta file\n",
+					"```\n",
+					"df = (spark.read.format(\"delta\")\n",
+					"    .option(\"versionAsOf\", 5)\n",
+					"    .load(\"/path/to/my_table\")\n",
+					"    )\n",
+					"display(df)\n",
+					"```\n",
+					"\n",
+					"Instead of loading an old version of the Delta table you could also to a time travel by using a past timestamp. Just replace `VersionAsOf` with `TimestampAsOf` \n",
+					"\n",
+					"```\n",
+					"TIMESTAMP AS OF '2024-04-03T10:00:00Z'\n",
+					"\n",
+					"or \n",
+					".option(\"timestampAsOf\", \"2024-04-03T10:00:00Z\")\n",
+					"```\n",
+					"\n",
+					"---\n",
+					"> **TASK:**\n",
+					"> - try out at least 4 different ways to time travel"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# 1. SQL with VERSION AS OF to version 1\n",
+					"df = spark.sql(\"SELECT * FROM cars VERSION AS OF 1\")\n",
+					"df.show()"
+				],
+				"execution_count": 17
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# 2. SQL with TIMESTAMP AS OF before deleting \n",
+					"df = spark.sql(\"SELECT * FROM cars TIMESTAMP AS OF '2025-04-03 21:48:20.759'\")\n",
+					"df.show()"
+				],
+				"execution_count": 19
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# 3. DataFrame API with versionAsOf to version 5\n",
+					"df = (spark.read.format(\"delta\")\n",
+					"    .option(\"versionAsOf\", 5)\n",
+					"    .table(\"cars\")\n",
+					"    )\n",
+					"\n",
+					"df.show()"
+				],
+				"execution_count": 20
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# 4. DataFrame API with timestampAsOf and file path to the time after delete but before merge\n",
+					"df = (spark.read.format(\"delta\")\n",
+					"    .option(\"timestampAsOf\", \"2025-04-03 21:48:20.759\")\n",
+					"    .load(f\"{trusted}/{user}/lab/cars\")\n",
+					"    )\n",
+					"\n",
+					"df.show()"
+				],
+				"execution_count": 21
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Restore a Previous Version\n",
+					"Delta allows you to role back to older versions of the history \n",
+					"\n",
+					"SQL Style\n",
+					"```\n",
+					"RESTORE TABLE my_table TO VERSION AS OF my_version\n",
+					"```\n",
+					"\n",
+					"Pyspark Style\n",
+					"There is no direct DataFrame API equivalent but a DeltaTable API function that can be used\n",
+					"```\n",
+					"deltaTable = DeltaTable.forPath(spark, file_oath)\n",
+					"or\n",
+					"deltaTable = DeltaTable.forName(spark, table_name)\n",
+					"\n",
+					"# Restore the table to a previous version\n",
+					"deltaTable.restoreToVersion(my_version)\n",
+					"```\n",
+					"\n",
+					"\n",
+					"---\n",
+					"> **TASK:**    \n",
+					"> - Revert the table to the version before the MERGE statement completed.    \n",
+					"> - Review the history of your table. Make note of the fact that restoring to a previous version adds another table version.\n",
+					"\n",
+					"\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Restore using DeltaTable API\n",
+					"deltaTable.restoreToVersion(6)"
+				],
+				"execution_count": 22
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"-- Restore using PlainSQL\n",
+					"\n",
+					"RESTORE TABLE cars TO VERSION AS OF 7"
+				],
+				"execution_count": 25
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# show history\n",
+					"deltaTable.history().select(\"version\",\"readVersion\",\"timestamp\",\"operation\",\"operationParameters.mode\",\"operationMetrics.numFiles\",\"operationMetrics.numOutputRows\",\"operationParameters.version\").show(truncate=False)\n",
+					""
+				],
+				"execution_count": 26
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"DESCRIBE EXTENDED cars"
+				],
+				"execution_count": 27
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Conclusion\n",
+					"**Delta Tables are made for Synapse Spark**   \n",
+					"Not for\n",
+					"* Serverless SQL Engine\n",
+					"* SQL Pool Engine"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Clean Up \n",
+					"run this code to remove the data from storage and database"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"\n",
+					"# 1. Drop cars table from metastore\n",
+					"spark.sql(\"DROP TABLE IF EXISTS cars\")\n",
+					"# 1. Drop juices table from metastore\n",
+					"spark.sql(\"DROP TABLE IF EXISTS juices\")\n",
+					"# 2. Remove files from the associated Delta path\n",
+					"safe_delete_path(f\"{trusted}/{user}/lab/cars\")\n",
+					"safe_delete_path(f\"{trusted}/{user}/lab/juices\")"
+				],
+				"execution_count": 50
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				]
+			}
+		]
+	}
+}

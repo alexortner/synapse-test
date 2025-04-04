@@ -1,0 +1,16 @@
+{
+	"name": "sparkConfiguration1",
+	"properties": {
+		"configs": {
+			"spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+			"spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog"
+		},
+		"created": "2025-03-20T22:09:59.208Z",
+		"createdBy": "aortner@thinkport.digital",
+		"annotations": [],
+		"configMergeRule": {
+			"artifact.currentOperation.spark.sql.extensions": "replace",
+			"artifact.currentOperation.spark.sql.catalog.spark_catalog": "replace"
+		}
+	}
+}

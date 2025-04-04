@@ -1,0 +1,106 @@
+{
+	"name": "airport_silver",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DataTest2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "currated",
+				"fileSystem": "lht"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "airport_id",
+				"type": "INT32"
+			},
+			{
+				"name": "iata",
+				"type": "UTF8"
+			},
+			{
+				"name": "icao",
+				"type": "UTF8"
+			},
+			{
+				"name": "name",
+				"type": "UTF8"
+			},
+			{
+				"name": "address",
+				"type": "UTF8"
+			},
+			{
+				"name": "website",
+				"type": "UTF8"
+			},
+			{
+				"name": "bio",
+				"type": "UTF8"
+			},
+			{
+				"name": "city_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "city_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "country_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "country_code",
+				"type": "UTF8"
+			},
+			{
+				"name": "country_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "region_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "region_code",
+				"type": "UTF8"
+			},
+			{
+				"name": "region_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "latitude",
+				"type": "UTF8"
+			},
+			{
+				"name": "longitude",
+				"type": "UTF8"
+			},
+			{
+				"name": "data_url",
+				"type": "UTF8"
+			},
+			{
+				"name": "dap_hash",
+				"type": "UTF8"
+			},
+			{
+				"name": "__insertTimestamp",
+				"type": "UTF8"
+			},
+			{
+				"name": "__loadTimestampCurated",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}
