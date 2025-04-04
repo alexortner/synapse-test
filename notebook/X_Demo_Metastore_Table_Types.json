@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "28b15677-fa2a-4023-97ab-6b1df3a07b01"
+				"spark.autotune.trackingId": "5df0294c-0885-40db-95b3-8ec87d745e5b"
 			}
 		},
 		"metadata": {
@@ -80,14 +80,14 @@
 					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
 					"user = \"alex\""
 				],
-				"execution_count": null
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": null
+				"execution_count": 4
 			},
 			{
 				"cell_type": "markdown",
@@ -119,13 +119,39 @@
 					"\n",
 					"SHOW DATABASES;"
 				],
-				"execution_count": 1
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"-- create database via command on a special folder\n",
+					"\n",
+					"CREATE DATABASE IF NOT EXISTS hive\n",
+					"LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/metastore_root_from_code';\n",
+					"\n",
+					"--DROP DATABASE IF EXISTS hive CASCADE\n",
+					"\n",
+					"SHOW DATABASES;"
+				],
+				"execution_count": 10
 			},
 			{
 				"cell_type": "code",
 				"source": [
-					"%s%sql\n",
-					"CREATE DATABASE hive LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/hive';\n",
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
 					""
 				],
 				"execution_count": null
