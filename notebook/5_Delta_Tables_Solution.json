@@ -18,7 +18,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3a8bd7dd-83b3-442f-9bb8-7c6cf2b0f42a"
+				"spark.autotune.trackingId": "1cb0cccb-a4dd-40ed-aecf-ecdb77e06177"
 			}
 		},
 		"metadata": {
@@ -168,28 +168,46 @@
 			},
 			{
 				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
 				"source": [
-					"# create example data\n",
-					"data = [\n",
-					"    (\"orange\", \"citrus\", 500.0, True),\n",
-					"    (\"apple\", \"sweet\", 1000.0, True),\n",
-					"    (\"beetroot\", \"earthy\", 42.5, False)\n",
-					"]\n",
-					"\n",
-					"columns = [\"name\", \"flavor\", \"milliliters\", \"refreshing\"]\n",
-					"\n",
-					"df = spark.createDataFrame(data, columns)\n",
-					"\n",
-					"\n",
+					"%%sql\n",
+					"show DATABASES"
+				],
+				"execution_count": 18
+			},
+			{
+				"cell_type": "code",
+				"source": [
 					"# write to user storage and register as external table\n",
 					"write=(df.write\n",
-					"    .saveAsTable(\"juices_managed\")\n",
-					")\n",
-					"\n",
-					"df.show()\n",
-					""
+					"    # define underlying format\n",
+					"    .format(\"delta\")\n",
+					"    # set path to storage location\n",
+					"    .option(\"path\", f\"{trusted}/{user}/lab/juices4\")\n",
+					"    # register as table\n",
+					"    .saveAsTable(\"lake.juices_external\")\n",
+					")"
 				],
-				"execution_count": 7
+				"execution_count": 17
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"DESCRIBE HISTORY juices"
+				],
+				"execution_count": 11
 			},
 			{
 				"cell_type": "markdown",
