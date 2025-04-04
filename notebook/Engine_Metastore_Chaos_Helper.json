@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "12939a13-b4f7-4938-8efb-75ec3f40383b"
+				"spark.autotune.trackingId": "dbca6ea5-5810-4c9d-86d6-4af7205398d2"
 			}
 		},
 		"metadata": {
@@ -64,7 +64,7 @@
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 2
+				"execution_count": 4
 			},
 			{
 				"cell_type": "markdown",
@@ -186,7 +186,7 @@
 					"\n",
 					"# write to external lake talbe\n",
 					"write=(df.write\n",
-					"    .saveAsTable(\"lake.juices_managed2\")\n",
+					"    .saveAsTable(\"lake.juices_managed\")\n",
 					")"
 				],
 				"execution_count": 15
@@ -205,7 +205,7 @@
 					"spark.sql(\"SHOW TABLES IN hive\").show()\n",
 					"spark.sql(\"SHOW TABLES IN lake\").show()"
 				],
-				"execution_count": 18
+				"execution_count": 9
 			},
 			{
 				"cell_type": "code",
@@ -275,12 +275,25 @@
 				"source": [
 					"%%sql\n",
 					"\n",
-					"DROP TABLE default.juices;\n",
-					"DROP TABLE default.juices_managed;\n",
+					"DROP TABLE hive.juices_external;\n",
+					"DROP TABLE hive.juices_managed;\n",
 					"DROP TABLE lake.juices_external;\n",
 					"DROP TABLE lake.juices_managed;"
 				],
-				"execution_count": 9
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"safe_delete_path(f\"{trusted}/{user}/lab/juices_hive_external\")\n",
+					"safe_delete_path(f\"{trusted}/{user}/lab/juices_lake_external\")\n",
+					"\n",
+					""
+				],
+				"execution_count": 10
 			},
 			{
 				"cell_type": "code",
