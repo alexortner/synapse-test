@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "42a8a37a-5430-4984-983c-034951a8d2cb"
+				"spark.autotune.trackingId": "baa0f455-a82c-4795-a24a-8528acd398d3"
 			}
 		},
 		"metadata": {
@@ -299,7 +299,8 @@
 			{
 				"cell_type": "code",
 				"source": [
-					""
+					"spark.sql(\"DROP DATABASE IF EXISTS hive CASCADE\")\n",
+					"spark.sql(\"DROP DATABASE IF EXISTS lake CASCADE\")"
 				],
 				"execution_count": null
 			}
