@@ -18,7 +18,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "1cb0cccb-a4dd-40ed-aecf-ecdb77e06177"
+				"spark.autotune.trackingId": "afd428dd-11fc-47ef-bd40-5b3a8e184952"
 			}
 		},
 		"metadata": {
@@ -82,14 +82,14 @@
 					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
 					"user = \"alex\""
 				],
-				"execution_count": 4
+				"execution_count": 23
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"%run helpers"
 				],
-				"execution_count": 5
+				"execution_count": 24
 			},
 			{
 				"cell_type": "markdown",
@@ -178,22 +178,17 @@
 					"%%sql\n",
 					"show DATABASES"
 				],
-				"execution_count": 18
+				"execution_count": 25
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"# write to user storage and register as external table\n",
 					"write=(df.write\n",
-					"    # define underlying format\n",
-					"    .format(\"delta\")\n",
-					"    # set path to storage location\n",
-					"    .option(\"path\", f\"{trusted}/{user}/lab/juices4\")\n",
-					"    # register as table\n",
-					"    .saveAsTable(\"lake.juices_external\")\n",
+					"    .saveAsTable(\"lake.juices_managed\")\n",
 					")"
 				],
-				"execution_count": 17
+				"execution_count": 31
 			},
 			{
 				"cell_type": "code",
@@ -205,9 +200,9 @@
 				},
 				"source": [
 					"%%sql\n",
-					"DESCRIBE HISTORY juices"
+					"DESCRIBE EXTENDEDlake.juices_managed"
 				],
-				"execution_count": 11
+				"execution_count": 35
 			},
 			{
 				"cell_type": "markdown",

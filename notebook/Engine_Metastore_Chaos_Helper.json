@@ -1,0 +1,294 @@
+{
+	"name": "Engine_Metastore_Chaos_Helper",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "Sparkpool01",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "88ca1ff1-1f0b-40a9-9550-1c5b5e96c5e3"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/09a38f01-eb6d-4b29-8759-eaac6c6e0933/resourceGroups/lht_workshop/providers/Microsoft.Synapse/workspaces/lht-workshop-prepration/bigDataPools/Sparkpool01",
+				"name": "Sparkpool01",
+				"type": "Spark",
+				"endpoint": "https://lht-workshop-prepration.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool01",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"# set parameters\n",
+					"bucket = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+					"currated = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+					"trusted = \"abfss://lht@lhtdata.dfs.core.windows.net/\"\n",
+					"user = \"alex\""
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"%run helpers"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Case 1: Lake Database (created from Spark)\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"write to user storage as delta and register in defaul databae of spark_catalog"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"SHOW CATALOGS;"
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"\n",
+					"CREATE DATABASE hive LOCATION 'abfss://lht@lhtdata.dfs.core.windows.net/hive';\n",
+					"SHOW DATABASES;"
+				],
+				"execution_count": 12
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"SHOW TABLES IN hive;\n",
+					"SHOW TABLES IN lake;"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# create example data\n",
+					"data = [\n",
+					"    (\"orange\", \"citrus\", 500.0, True),\n",
+					"    (\"apple\", \"sweet\", 1000.0, True),\n",
+					"    (\"beetroot\", \"earthy\", 42.5, False)\n",
+					"]\n",
+					"\n",
+					"columns = [\"name\", \"flavor\", \"milliliters\", \"refreshing\"]\n",
+					"\n",
+					"df = spark.createDataFrame(data, columns)\n",
+					"\n",
+					"df.show()"
+				],
+				"execution_count": 14
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# write to external hive talbe\n",
+					"write=(df.write\n",
+					"    # define underlying format\n",
+					"    .format(\"delta\")\n",
+					"    # set path to storage location\n",
+					"    .option(\"path\", f\"{trusted}/{user}/lab/juices_hive_external\")\n",
+					"    # register as table\n",
+					"    .saveAsTable(\"hive.juices_external\")\n",
+					")\n",
+					"\n",
+					"# write to external lake talbe\n",
+					"write=(df.write\n",
+					"    # define underlying format\n",
+					"    .format(\"delta\")\n",
+					"    # set path to storage location\n",
+					"    .option(\"path\", f\"{trusted}/{user}/lab/juices_lake_external\")\n",
+					"    # register as table\n",
+					"    .saveAsTable(\"lake.juices_external\")\n",
+					")\n",
+					"\n",
+					"# write to managed hive talbe\n",
+					"write=(df.write\n",
+					"    .saveAsTable(\"hive.juices_managed\")\n",
+					")\n",
+					"\n",
+					"# write to external lake talbe\n",
+					"write=(df.write\n",
+					"    .saveAsTable(\"lake.juices_managed2\")\n",
+					")"
+				],
+				"execution_count": 15
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": 16
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# show tables\n",
+					"spark.sql(\"SHOW TABLES IN hive\").show()\n",
+					"spark.sql(\"SHOW TABLES IN lake\").show()"
+				],
+				"execution_count": 18
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# describe tables\n",
+					"(spark\n",
+					"    .sql(\"DESCRIBE EXTENDED hive.juices_external\")\n",
+					"    .where(f.col(\"col_name\").isin(\"Name\",\"Type\",\"Location\",\"Provider\"))\n",
+					"    .drop(\"comment\")\n",
+					"    .withColumnRenamed(\"col_name\",\"key\")\n",
+					"    .withColumnRenamed(\"data_type\",\"value\")\n",
+					").show(truncate=False)\n",
+					"\n",
+					"\n",
+					"# describe tables\n",
+					"(spark\n",
+					"    .sql(\"DESCRIBE EXTENDED hive.juices_managed\")\n",
+					"    .where(f.col(\"col_name\").isin(\"Name\",\"Type\",\"Location\",\"Provider\"))\n",
+					"    .drop(\"comment\")\n",
+					"    .withColumnRenamed(\"col_name\",\"key\")\n",
+					"    .withColumnRenamed(\"data_type\",\"value\")\n",
+					").show(truncate=False)\n",
+					"\n",
+					"\n",
+					"# describe tables\n",
+					"(spark\n",
+					"    .sql(\"DESCRIBE EXTENDED lake.juices_external\")\n",
+					"    .where(f.col(\"col_name\").isin(\"Name\",\"Type\",\"Location\",\"Provider\"))\n",
+					"    .drop(\"comment\")\n",
+					"    .withColumnRenamed(\"col_name\",\"key\")\n",
+					"    .withColumnRenamed(\"data_type\",\"value\")\n",
+					").show(truncate=False)\n",
+					"\n",
+					"\n",
+					"# describe tables\n",
+					"(spark\n",
+					"    .sql(\"DESCRIBE EXTENDED lake.juices_managed\")\n",
+					"    .where(f.col(\"col_name\").isin(\"Name\",\"Type\",\"Location\",\"Provider\"))\n",
+					"    .drop(\"comment\")\n",
+					"    .withColumnRenamed(\"col_name\",\"key\")\n",
+					"    .withColumnRenamed(\"data_type\",\"value\")\n",
+					").show(truncate=False)"
+				],
+				"execution_count": 32
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Clean Up"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"\n",
+					"DROP TABLE default.juices;\n",
+					"DROP TABLE default.juices_managed;\n",
+					"DROP TABLE lake.juices_external;\n",
+					"DROP TABLE lake.juices_managed;"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
