@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "649e162c-1cae-403e-81be-aa2cbe1dc75c"
+				"spark.autotune.trackingId": "7e6fef1c-934a-431a-892f-3a03aaa27919"
 			}
 		},
 		"metadata": {
@@ -189,14 +189,15 @@
 					"    .saveAsTable(\"lake.juices_managed\")\n",
 					")"
 				],
-				"execution_count": null
+				"execution_count": 12
 			},
 			{
 				"cell_type": "code",
 				"source": [
+					"df.printSchema()\n",
 					""
 				],
-				"execution_count": 16
+				"execution_count": 15
 			},
 			{
 				"cell_type": "code",
@@ -205,7 +206,7 @@
 					"spark.sql(\"SHOW TABLES IN hive\").show()\n",
 					"spark.sql(\"SHOW TABLES IN lake\").show()"
 				],
-				"execution_count": 9
+				"execution_count": 13
 			},
 			{
 				"cell_type": "code",
@@ -249,7 +250,7 @@
 					"    .withColumnRenamed(\"data_type\",\"value\")\n",
 					").show(truncate=False)"
 				],
-				"execution_count": 3
+				"execution_count": 14
 			},
 			{
 				"cell_type": "markdown",
