@@ -1,0 +1,17 @@
+{
+	"name": "Engine_Metastore_Chaos_Helper_SQL",
+	"properties": {
+		"content": {
+			"query": "SELECT * FROM hive.dbo.juices_external;\n\nSELECT * FROM lake.dbo.juices_external;\n\n\nSELECT * FROM hive.dbo.juices_managed;\n\nSELECT * FROM lake.dbo.juices_managed2;\n\n\nUSE lake;\nSELECT * FROM INFORMATION_SCHEMA.COLUMNS\n\nUSE hive;\nSELECT * FROM INFORMATION_SCHEMA.TABLES;\n\nSELECT * FROM INFORMATION_SCHEMA.SCHEMATA\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
