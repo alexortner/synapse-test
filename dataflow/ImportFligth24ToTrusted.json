@@ -1,5 +1,5 @@
 {
-	"name": "Dataflow1",
+	"name": "ImportFligth24ToTrusted",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
