@@ -4391,6 +4391,156 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/DataTest2')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Workflow_move_to_bronze')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "LoadAirportToBronze",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ImportAirportsToTrusted",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"DeltaSourceAirport": {},
+									"SinkDeltaAirport": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/dataflows/ImportAirportsToTrusted')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ImportFligth24ToTrusted')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataTest2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceDeltaFlights24"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataTest2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkDeltaFlights"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          address as string,",
+						"          altitude as string,",
+						"          callsign as string,",
+						"          date as date,",
+						"          destination_iata as string,",
+						"          destination_icao as string,",
+						"          equipment as string,",
+						"          event as string,",
+						"          flight as string,",
+						"          flight_id as string,",
+						"          latitude as string,",
+						"          longitude as string,",
+						"          operator as string,",
+						"          origin_iata as string,",
+						"          origin_icao as string,",
+						"          registration as string,",
+						"          time as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     compressionType: 'snappy',",
+						"     compressionLevel: 'Fastest',",
+						"     fileSystem: 'lht',",
+						"     folderPath: 'fr24.delta') ~> SourceDeltaFlights24",
+						"SourceDeltaFlights24 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     compressionType: 'snappy',",
+						"     compressionLevel: 'Fastest',",
+						"     fileSystem: 'lht',",
+						"     folderPath: 'alex/bronze/fr24.delta',",
+						"     overwrite: true,",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable: false,",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     upsertable: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SinkDeltaFlights"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/DataTest2')]"
+			]
 		}
 	]
 }
