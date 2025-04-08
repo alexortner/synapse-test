@@ -1,0 +1,111 @@
+{
+	"name": "ImportAirportsToTrusted",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DataTest2",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DeltaSourceAirport",
+					"description": "Delta File with all Airport master data"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DataTest2",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkDeltaAirport"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SelectRelevantColumns"
+				},
+				{
+					"name": "CastToFinalDataTypes"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          airport_id as integer,",
+				"          iata as string,",
+				"          icao as string,",
+				"          name as string,",
+				"          address as string,",
+				"          website as string,",
+				"          bio as string,",
+				"          city_id as string,",
+				"          city_name as string,",
+				"          country_id as string,",
+				"          country_code as string,",
+				"          country_name as string,",
+				"          region_id as string,",
+				"          region_code as string,",
+				"          region_name as string,",
+				"          latitude as string,",
+				"          longitude as string,",
+				"          data_url as string,",
+				"          dap_hash as string,",
+				"          {__insertTimestamp} as string,",
+				"          {__loadTimestampCurated} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: 'lht',",
+				"     folderPath: 'airport.delta') ~> DeltaSourceAirport",
+				"DeltaSourceAirport select(mapColumn(",
+				"          airport_id,",
+				"          iata,",
+				"          icao,",
+				"          name,",
+				"          city_name,",
+				"          country_code,",
+				"          country_name,",
+				"          latitude,",
+				"          longitude,",
+				"          {__insertTimestamp},",
+				"          {__loadTimestampCurated}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectRelevantColumns",
+				"SelectRelevantColumns cast(output(",
+				"          airport_id as integer,",
+				"          latitude as double,",
+				"          longitude as double,",
+				"          {__insertTimestamp} as timestamp,",
+				"          {__loadTimestampCurated} as timestamp",
+				"     ),",
+				"     errors: true) ~> CastToFinalDataTypes",
+				"CastToFinalDataTypes sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: 'lht',",
+				"     folderPath: 'alex/bronze/airport.delta',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     upsertable: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SinkDeltaAirport"
+			]
+		}
+	}
+}
